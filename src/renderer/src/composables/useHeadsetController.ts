@@ -7,6 +7,7 @@ import type {
   ScrcpyStatus
 } from '../../../shared/contracts/headset.contracts'
 import { toUserFacingError } from './event-log.model'
+import { useAppConfig } from './useAppConfig'
 import { useEventLog } from './useEventLog'
 
 type Operation =
@@ -22,9 +23,6 @@ const environment = ref<EnvironmentCheck | null>(null)
 const devices = ref<AdbDevice[]>([])
 const appInfo = ref<AppInfo | null>(null)
 const technicalLogInfo = ref<TechnicalLogInfo | null>(null)
-const address = ref('192.168.1.100:5555')
-const crop = ref('')
-const noAudio = ref(true)
 const operation = ref<Operation>(null)
 const adbConnectionState = ref<'unknown' | 'connected' | 'disconnected' | 'error'>('unknown')
 const adbConnectionMessage = ref('Run device discovery or connect to update ADB state.')
@@ -43,7 +41,8 @@ const setOperation = async (currentOperation: Exclude<Operation, null>, task: ()
 }
 
 const getRequiredAddress = (): string | null => {
-  const trimmedAddress = address.value.trim()
+  const { activeDevice } = useAppConfig()
+  const trimmedAddress = activeDevice.value?.address.trim() ?? ''
   const { addEvent } = useEventLog()
 
   if (!trimmedAddress) {
@@ -88,6 +87,7 @@ const addScrcpyEventToLog = (event: ScrcpyProcessEvent): void => {
 
 export const useHeadsetController = () => {
   const { addEvent } = useEventLog()
+  const appConfig = useAppConfig()
 
   const isBusy = computed(() => operation.value !== null)
   const isAdbAvailable = computed(() => environment.value?.adb.available === true)
@@ -95,17 +95,59 @@ export const useHeadsetController = () => {
   const isScrcpyRunning = computed(() => scrcpyStatus.value?.running === true)
 
   const matchingDevice = computed(() => {
-    const trimmedAddress = address.value.trim()
+    const trimmedAddress = appConfig.activeDevice.value?.address.trim() ?? ''
     return devices.value.find((device) => device.serial === trimmedAddress) ?? null
   })
 
   const refreshAppDiagnostics = async (): Promise<void> => {
-    appInfo.value = await window.arena.getAppInfo()
-    technicalLogInfo.value = await window.arena.getTechnicalLogInfo()
+    appInfo.value = await window.vrControl.getAppInfo()
+    technicalLogInfo.value = await window.vrControl.getTechnicalLogInfo()
+  }
+
+  const updateDeviceAddress = async (address: string): Promise<void> => {
+    const deviceId = appConfig.activeDevice.value?.id
+    if (!deviceId) {
+      return
+    }
+
+    await appConfig.updateConfig((currentConfig) => ({
+      ...currentConfig,
+      devices: currentConfig.devices.map((device) =>
+        device.id === deviceId ? { ...device, address } : device
+      )
+    }))
+  }
+
+  const updateStreamCrop = async (crop: string): Promise<void> => {
+    const profileId = appConfig.activeStreamProfile.value?.id
+    if (!profileId) {
+      return
+    }
+
+    await appConfig.updateConfig((currentConfig) => ({
+      ...currentConfig,
+      streamProfiles: currentConfig.streamProfiles.map((profile) =>
+        profile.id === profileId ? { ...profile, crop } : profile
+      )
+    }))
+  }
+
+  const updateNoAudio = async (noAudio: boolean): Promise<void> => {
+    const profileId = appConfig.activeStreamProfile.value?.id
+    if (!profileId) {
+      return
+    }
+
+    await appConfig.updateConfig((currentConfig) => ({
+      ...currentConfig,
+      streamProfiles: currentConfig.streamProfiles.map((profile) =>
+        profile.id === profileId ? { ...profile, noAudio } : profile
+      )
+    }))
   }
 
   const refreshScrcpyStatus = async (): Promise<void> => {
-    scrcpyStatus.value = await window.arena.headset.getScrcpyStatus()
+    scrcpyStatus.value = await window.vrControl.headset.getScrcpyStatus()
   }
 
   const checkEnvironment = async (): Promise<void> => {
@@ -113,7 +155,7 @@ export const useHeadsetController = () => {
       addEvent({ level: 'info', message: 'Проверка ADB и scrcpy.' })
 
       try {
-        environment.value = await window.arena.headset.checkEnvironment()
+        environment.value = await window.vrControl.headset.checkEnvironment()
         addEvent({
           level: environment.value.adb.available ? 'success' : 'error',
           message: environment.value.adb.available ? 'ADB найден.' : 'ADB не найден.',
@@ -149,7 +191,7 @@ export const useHeadsetController = () => {
       addEvent({ level: 'info', message: 'Обновление списка ADB-устройств.' })
 
       try {
-        const result = await window.arena.headset.listAdbDevices()
+        const result = await window.vrControl.headset.listAdbDevices()
         devices.value = result.devices
         const device = matchingDevice.value
 
@@ -201,7 +243,7 @@ export const useHeadsetController = () => {
       })
 
       try {
-        const result = await window.arena.headset.connectDevice(targetAddress)
+        const result = await window.vrControl.headset.connectDevice(targetAddress)
         adbConnectionState.value = result.ok ? 'connected' : 'error'
         adbConnectionMessage.value = result.ok ? 'ADB connection established.' : 'ADB connection failed.'
         addEvent({
@@ -245,7 +287,7 @@ export const useHeadsetController = () => {
       })
 
       try {
-        const result = await window.arena.headset.disconnectDevice(targetAddress)
+        const result = await window.vrControl.headset.disconnectDevice(targetAddress)
         adbConnectionState.value = result.ok ? 'disconnected' : 'error'
         adbConnectionMessage.value = result.ok ? 'ADB device disconnected.' : 'ADB disconnect failed.'
         addEvent({
@@ -296,10 +338,10 @@ export const useHeadsetController = () => {
       })
 
       try {
-        const result = await window.arena.headset.startScrcpy({
+        const result = await window.vrControl.headset.startScrcpy({
           address: targetAddress,
-          crop: crop.value,
-          noAudio: noAudio.value
+          crop: appConfig.activeStreamProfile.value?.crop ?? '',
+          noAudio: appConfig.activeStreamProfile.value?.noAudio ?? true
         })
         scrcpyStatus.value = result.status
         addEvent({
@@ -332,7 +374,7 @@ export const useHeadsetController = () => {
       })
 
       try {
-        const result = await window.arena.headset.stopScrcpy()
+        const result = await window.vrControl.headset.stopScrcpy()
         scrcpyStatus.value = result.status
         addEvent({
           level: result.ok ? 'success' : 'error',
@@ -353,7 +395,8 @@ export const useHeadsetController = () => {
     }
 
     isInitialized = true
-    unsubscribeScrcpy = window.arena.headset.onScrcpyEvent((event) => {
+    await appConfig.loadConfig()
+    unsubscribeScrcpy = window.vrControl.headset.onScrcpyEvent((event) => {
       scrcpyStatus.value = event.status
       addScrcpyEventToLog(event)
     })
@@ -372,9 +415,12 @@ export const useHeadsetController = () => {
     devices,
     appInfo,
     technicalLogInfo,
-    address,
-    crop,
-    noAudio,
+    config: appConfig.config,
+    configFile: appConfig.file,
+    activeDevice: appConfig.activeDevice,
+    activeStreamProfile: appConfig.activeStreamProfile,
+    configError: appConfig.error,
+    isConfigLoading: appConfig.isLoading,
     operation,
     adbConnectionState,
     adbConnectionMessage,
@@ -386,6 +432,10 @@ export const useHeadsetController = () => {
     matchingDevice,
     initialize,
     dispose,
+    updateDeviceAddress,
+    updateStreamCrop,
+    updateNoAudio,
+    resetConfig: appConfig.resetConfig,
     refreshAppDiagnostics,
     checkEnvironment,
     refreshDevices,

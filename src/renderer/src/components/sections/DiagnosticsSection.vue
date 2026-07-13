@@ -1,12 +1,7 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
 import { useHeadsetController } from '../../composables/useHeadsetController'
 
 const headset = useHeadsetController()
-
-onMounted(() => {
-  void headset.initialize()
-})
 </script>
 
 <template>
@@ -76,6 +71,14 @@ onMounted(() => {
           <p class="section-label">Application</p>
           <h3>Runtime</h3>
         </div>
+        <button
+          type="button"
+          class="danger-button"
+          :disabled="headset.isConfigLoading.value"
+          @click="headset.resetConfig"
+        >
+          Reset configuration
+        </button>
       </div>
 
       <dl class="details-grid">
@@ -106,6 +109,10 @@ onMounted(() => {
         <div>
           <dt>Log file</dt>
           <dd>{{ headset.technicalLogInfo.value?.file ?? 'Unknown' }}</dd>
+        </div>
+        <div>
+          <dt>Configuration file</dt>
+          <dd>{{ headset.configFile.value?.file ?? 'Unknown' }}</dd>
         </div>
       </dl>
     </section>

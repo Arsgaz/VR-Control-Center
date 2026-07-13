@@ -1,5 +1,5 @@
 {
-  "name": "arena-control-center",
+  "name": "vr-control-center",
   "version": "0.1.0",
   "description": "Local desktop application for VR headset management.",
   "main": "./out/main/index.js",
@@ -38,7 +38,7 @@
     "vue-tsc": "^3.1.1"
   },
   "build": {
-    "appId": "com.arenacontrol.desktop",
+    "appId": "com.vrcontrolcenter.desktop",
     "productName": "VR Control Center",
     "directories": {
       "output": "dist"

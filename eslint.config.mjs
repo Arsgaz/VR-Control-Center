@@ -22,6 +22,8 @@ export default tseslint.config(
     files: ['src/renderer/**/*.{ts,vue}'],
     languageOptions: {
       globals: {
+        Event: 'readonly',
+        HTMLInputElement: 'readonly',
         window: 'readonly'
       }
     }

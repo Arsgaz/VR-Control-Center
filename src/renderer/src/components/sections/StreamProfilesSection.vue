@@ -25,15 +25,17 @@ const headset = useHeadsetController()
       <dl class="details-grid">
         <div>
           <dt>Target device</dt>
-          <dd>{{ headset.address.value || 'Not set' }}</dd>
+          <dd>{{ headset.activeDevice.value?.address || 'Not set' }}</dd>
         </div>
         <div>
           <dt>Crop</dt>
-          <dd>{{ headset.crop.value.trim() || 'Not passed to scrcpy' }}</dd>
+          <dd>{{ headset.activeStreamProfile.value?.crop.trim() || 'Not passed to scrcpy' }}</dd>
         </div>
         <div>
           <dt>Audio</dt>
-          <dd>{{ headset.noAudio.value ? 'Disabled with --no-audio' : 'Enabled' }}</dd>
+          <dd>
+            {{ headset.activeStreamProfile.value?.noAudio ? 'Disabled with --no-audio' : 'Enabled' }}
+          </dd>
         </div>
       </dl>
 

@@ -1,12 +1,29 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
 import { useHeadsetController } from '../../composables/useHeadsetController'
 
 const headset = useHeadsetController()
 
-onMounted(() => {
-  void headset.initialize()
-})
+const onAddressChange = (event: Event): void => {
+  const input = event.target
+  if (input instanceof HTMLInputElement) {
+    void headset.updateDeviceAddress(input.value)
+  }
+}
+
+const onCropChange = (event: Event): void => {
+  const input = event.target
+  if (input instanceof HTMLInputElement) {
+    void headset.updateStreamCrop(input.value)
+  }
+}
+
+const onNoAudioChange = (event: Event): void => {
+  const input = event.target
+  if (input instanceof HTMLInputElement) {
+    void headset.updateNoAudio(input.checked)
+  }
+}
+
 </script>
 
 <template>
@@ -31,20 +48,31 @@ onMounted(() => {
         <label>
           <span>Address IP:port</span>
           <input
-            v-model="headset.address.value"
+            :value="headset.activeDevice.value?.address ?? ''"
             type="text"
             autocomplete="off"
             placeholder="192.168.1.100:5555"
+            @change="onAddressChange"
           />
         </label>
 
         <label>
           <span>Crop</span>
-          <input v-model="headset.crop.value" type="text" autocomplete="off" placeholder="Empty" />
+          <input
+            :value="headset.activeStreamProfile.value?.crop ?? ''"
+            type="text"
+            autocomplete="off"
+            placeholder="Empty"
+            @change="onCropChange"
+          />
         </label>
 
         <label class="toggle-row">
-          <input v-model="headset.noAudio.value" type="checkbox" />
+          <input
+            :checked="headset.activeStreamProfile.value?.noAudio ?? true"
+            type="checkbox"
+            @change="onNoAudioChange"
+          />
           <span>No audio</span>
         </label>
       </div>

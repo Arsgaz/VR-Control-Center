@@ -1,14 +1,20 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { APP_IPC_CHANNELS, type ArenaApi } from '../shared/contracts/app.contracts'
+import { APP_IPC_CHANNELS, type VrControlApi } from '../shared/contracts/app.contracts'
+import { CONFIG_IPC_CHANNELS, type AppConfig } from '../shared/contracts/config.contracts'
 import {
   HEADSET_IPC_CHANNELS,
   type ScrcpyProcessEvent,
   type ScrcpyStartOptions
 } from '../shared/contracts/headset.contracts'
 
-const arenaApi: ArenaApi = {
+const vrControlApi: VrControlApi = {
   getAppInfo: () => ipcRenderer.invoke(APP_IPC_CHANNELS.getAppInfo),
   getTechnicalLogInfo: () => ipcRenderer.invoke(APP_IPC_CHANNELS.getTechnicalLogInfo),
+  configuration: {
+    getConfig: () => ipcRenderer.invoke(CONFIG_IPC_CHANNELS.getConfig),
+    updateConfig: (config: AppConfig) => ipcRenderer.invoke(CONFIG_IPC_CHANNELS.updateConfig, config),
+    resetConfig: () => ipcRenderer.invoke(CONFIG_IPC_CHANNELS.resetConfig)
+  },
   headset: {
     checkEnvironment: () => ipcRenderer.invoke(HEADSET_IPC_CHANNELS.checkEnvironment),
     listAdbDevices: () => ipcRenderer.invoke(HEADSET_IPC_CHANNELS.listAdbDevices),
@@ -34,4 +40,4 @@ const arenaApi: ArenaApi = {
   }
 }
 
-contextBridge.exposeInMainWorld('arena', arenaApi)
+contextBridge.exposeInMainWorld('vrControl', vrControlApi)

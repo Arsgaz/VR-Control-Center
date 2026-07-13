@@ -1,4 +1,5 @@
 import type { HeadsetApi } from './headset.contracts'
+import type { ConfigurationApi } from './config.contracts'
 
 export const APP_IPC_CHANNELS = {
   getAppInfo: 'app:get-info',
@@ -21,8 +22,9 @@ export interface TechnicalLogInfo {
   file: string
 }
 
-export interface ArenaApi {
+export interface VrControlApi {
   getAppInfo: () => Promise<AppInfo>
   getTechnicalLogInfo: () => Promise<TechnicalLogInfo>
+  configuration: ConfigurationApi
   headset: HeadsetApi
 }

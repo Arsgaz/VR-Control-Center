@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import AppNavigation from './components/layout/AppNavigation.vue'
 import UserEventLog from './components/layout/UserEventLog.vue'
 import DevicesSection from './components/sections/DevicesSection.vue'
@@ -11,6 +11,10 @@ type AppSection = 'devices' | 'profiles' | 'diagnostics'
 
 const activeSection = ref<AppSection>('devices')
 const headset = useHeadsetController()
+
+onMounted(() => {
+  void headset.initialize()
+})
 
 onUnmounted(() => {
   headset.dispose()

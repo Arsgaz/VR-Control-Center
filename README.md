@@ -24,6 +24,10 @@ The application is local-only at this stage. It does not start a backend server 
 
 The first workflow uses system-installed `adb` and `scrcpy` from `PATH`.
 
+User configuration is stored as human-readable JSON in Electron's standard `userData` directory. The app creates `config.json` on first launch and restores defaults if the file is missing or corrupted.
+
+When a legacy configuration exists and the new `vr-control-center/config.json` does not, the app copies the legacy configuration to the new location on startup.
+
 ## Type checking
 
 ```sh
@@ -68,6 +72,8 @@ src/
 │   │   └── headset.handlers.ts
 │   ├── logger/
 │   │   └── logger.ts
+│   ├── config/
+│   │   └── configuration.service.ts
 │   └── tools/
 │       ├── adb.service.ts
 │       ├── process-runner.ts
@@ -95,8 +101,12 @@ src/
 │       ├── main.ts
 │       └── styles.css
 └── shared/
+    ├── config/
+    │   ├── config.validation.ts
+    │   └── default-config.ts
     ├── contracts/
     │   ├── app.contracts.ts
+    │   ├── config.contracts.ts
     │   └── headset.contracts.ts
     └── tools/
         ├── adb.parser.ts
@@ -107,8 +117,11 @@ src/
 
 - Electron, Vue 3, TypeScript, Vite, preload, and typed IPC are wired together.
 - The renderer has no direct Node.js access.
-- The window and package product name use `VR Control Center`; `appId` remains `com.arenacontrol.desktop` for compatibility.
+- The window title, package name, product name, appId, userData path, and logs path use `VR Control Center` / `vr-control-center` naming.
 - The main process writes technical logs to Electron's standard logs directory and exposes the path in Diagnostics.
+- The main process owns the Configuration Service. Renderer receives configuration through typed preload IPC only.
+- Configuration stores user data only: application settings, devices, stream profiles, settings, and logger settings.
+- ADB connection state, scrcpy process state, process IDs, discovered devices, and errors remain runtime state and are not persisted.
 - The first local workflow checks system `adb` and `scrcpy`, lists ADB devices, connects or disconnects one headset address, and starts or stops one scrcpy stream.
 - ADB and scrcpy binaries are not bundled yet.
-- Multi-device management, mock devices, remote control, and Arena Agent are not implemented yet.
+- Multi-device management, mock devices, remote control, and a separate agent are not implemented yet.
