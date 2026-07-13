@@ -6,7 +6,7 @@ import {
   isNewDeviceConfig,
   isNewStreamProfileConfig,
   isStreamProfileConfigUpdate
-} from '../../shared/config/config.validation'
+} from '@shared/config/config.validation'
 import {
   CONFIG_IPC_CHANNELS,
   type AppLanguage,
@@ -17,9 +17,9 @@ import {
   type NewStreamProfileConfig,
   type StreamProfileConfigUpdate,
   type UserSettingsUpdate
-} from '../../shared/contracts/config.contracts'
-import { configurationService } from '../config/configuration.service'
-import { logger } from '../logger/logger'
+} from '@shared/contracts/config.contracts'
+import type { ConfigurationService } from './configuration.service'
+import { logger } from '@main/infrastructure/logging/logger'
 
 const toConfigError = (
   code: ConfigurationError['code'],
@@ -32,7 +32,7 @@ const toConfigError = (
   }
 })
 
-export const registerConfigHandlers = (): void => {
+export const registerConfigurationHandlers = (configurationService: ConfigurationService): void => {
   ipcMain.handle(CONFIG_IPC_CHANNELS.getConfig, (): ConfigurationResult => {
     try {
       const state = configurationService.get()

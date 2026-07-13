@@ -5,8 +5,8 @@ import {
   type SelectToolBinaryResult,
   type TechnicalLogInfo,
   type ToolBinaryKind
-} from '../../shared/contracts/app.contracts'
-import { clearOldTechnicalLogs, getTechnicalLogInfo, logger } from '../logger/logger'
+} from '@shared/contracts/app.contracts'
+import { clearOldTechnicalLogs, getTechnicalLogInfo, logger } from '@main/infrastructure/logging/logger'
 
 const normalizePlatform = (platform: NodeJS.Platform): AppInfo['platform'] => {
   if (platform === 'win32' || platform === 'darwin' || platform === 'linux') {
@@ -16,7 +16,7 @@ const normalizePlatform = (platform: NodeJS.Platform): AppInfo['platform'] => {
   return 'linux'
 }
 
-export const registerAppHandlers = (): void => {
+export const registerApplicationHandlers = (): void => {
   ipcMain.handle(APP_IPC_CHANNELS.getAppInfo, (): AppInfo => {
     const appInfo = {
       appName: 'VR Control Center',

@@ -3,7 +3,7 @@ import {
   allowAutoReconnectAfterManualConnect,
   canStartRuntimeRefresh,
   suspendAutoReconnectAfterManualDisconnect
-} from './headset-runtime.policy'
+} from './device-runtime.policy'
 
 describe('headset runtime policy', () => {
   it('prevents overlapping refresh for the same device', () => {

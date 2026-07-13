@@ -1,5 +1,5 @@
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process'
-import { buildScrcpyArgs } from '../../shared/tools/scrcpy.args'
+import { buildScrcpyArgs } from '@shared/tools/scrcpy.args'
 import type {
   ScrcpyProcessEvent,
   ScrcpyStartOptions,
@@ -7,10 +7,10 @@ import type {
   ScrcpyStatus,
   ScrcpyStopResult,
   ToolCheck
-} from '../../shared/contracts/headset.contracts'
-import { runCommand } from './process-runner'
-import { logger } from '../logger/logger'
-import { systemBinaryResolver, type BinaryResolver } from './binary-resolver'
+} from '@shared/contracts/headset.contracts'
+import { runCommand } from '@main/infrastructure/process/process-runner'
+import { logger } from '@main/infrastructure/logging/logger'
+import { systemBinaryResolver, type BinaryResolver } from '@main/infrastructure/binaries/binary-resolver'
 
 const SHORT_COMMAND_TIMEOUT_MS = 10_000
 

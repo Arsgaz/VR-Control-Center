@@ -1,18 +1,18 @@
-import { parseAdbDevices } from '../../shared/tools/adb.parser'
-import { parseBatteryDumpsys } from '../../shared/tools/battery.parser'
+import { parseAdbDevices } from '@shared/tools/adb.parser'
+import { parseBatteryDumpsys } from '@shared/tools/battery.parser'
 import {
   parseForegroundFromActivityDumpsys,
   parseForegroundFromWindowDumpsys
-} from '../../shared/tools/foreground.parser'
+} from '@shared/tools/foreground.parser'
 import type {
   AdbCommandResult,
   AdbDevicesResult,
   DeviceRuntimeState,
   ToolCheck
-} from '../../shared/contracts/headset.contracts'
-import { runCommand } from './process-runner'
-import { logger } from '../logger/logger'
-import { systemBinaryResolver, type BinaryResolver } from './binary-resolver'
+} from '@shared/contracts/headset.contracts'
+import { runCommand } from '@main/infrastructure/process/process-runner'
+import { logger } from '@main/infrastructure/logging/logger'
+import { systemBinaryResolver, type BinaryResolver } from '@main/infrastructure/binaries/binary-resolver'
 
 const SHORT_COMMAND_TIMEOUT_MS = 10_000
 

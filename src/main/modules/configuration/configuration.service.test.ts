@@ -2,8 +2,8 @@ import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { createDefaultConfig } from '../../shared/config/default-config'
-import type { NewStreamProfileConfig } from '../../shared/contracts/config.contracts'
+import { createDefaultConfig } from '@shared/config/default-config'
+import type { NewStreamProfileConfig } from '@shared/contracts/config.contracts'
 import { ConfigurationService } from './configuration.service'
 
 let tempDirectory: string

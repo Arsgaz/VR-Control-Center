@@ -1,4 +1,4 @@
-import type { UserSettingsConfig } from '../../shared/contracts/config.contracts'
+import type { UserSettingsConfig } from '@shared/contracts/config.contracts'
 
 export interface BinaryResolver {
   adb: () => string
