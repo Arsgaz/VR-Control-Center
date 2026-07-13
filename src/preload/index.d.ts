@@ -1,8 +1,8 @@
-import type { ArenaApi } from '../shared/contracts/app.contracts'
+import type { VrControlApi } from '../shared/contracts/app.contracts'
 
 declare global {
   interface Window {
-    arena: ArenaApi
+    vrControl: VrControlApi
   }
 }
 

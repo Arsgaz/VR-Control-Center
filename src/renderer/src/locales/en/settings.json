@@ -1,0 +1,99 @@
+{
+  "navigation": {
+    "profilesTitle": "Stream profiles",
+    "profilesDescription": "Stream profiles",
+    "diagnosticsTitle": "Settings / Diagnostics",
+    "diagnosticsDescription": "Settings and diagnostics"
+  },
+  "language": {
+    "title": "Language",
+    "english": "English",
+    "russian": "Русский"
+  },
+  "page": {
+    "label": "Settings / Diagnostics",
+    "title": "Settings",
+    "description": "Local application settings, tool diagnostics and runtime information."
+  },
+  "sections": {
+    "general": "General",
+    "tools": "Tools",
+    "logging": "Logging",
+    "runtime": "About / Runtime",
+    "danger": "Danger Zone"
+  },
+  "fields": {
+    "autoReconnect": "Automatically connect saved headsets",
+    "launchAtStartup": "Launch at startup",
+    "closeBehavior": "Window close behavior",
+    "runtimePollingInterval": "Runtime refresh interval",
+    "adbSource": "ADB source",
+    "adbPath": "Custom ADB path",
+    "scrcpySource": "scrcpy source",
+    "scrcpyPath": "Custom scrcpy path",
+    "logLevel": "Log level",
+    "verboseLogging": "Verbose technical logging"
+  },
+  "descriptions": {
+    "autoReconnect": "VR Control Center reconnects to known device addresses on startup and after connection loss.",
+    "launchAtStartup": "Starts VR Control Center when the user signs in to Windows or macOS.",
+    "launchAtStartupUnavailable": "Startup integration is prepared but not implemented yet.",
+    "closeBehavior": "Controls what happens when the main window is closed.",
+    "trayUnavailable": "Tray mode is not implemented yet.",
+    "runtimePollingInterval": "Controls how often connected devices refresh battery and foreground app data.",
+    "customPath": "Choose a local executable through a secure system dialog.",
+    "bundledUnavailable": "Bundled binaries are not included in this build.",
+    "verboseLogging": "Adds more diagnostic details for ADB, scrcpy and runtime polling."
+  },
+  "options": {
+    "quit": "Quit application",
+    "minimizeToTray": "Minimize to tray",
+    "ask": "Ask every time",
+    "seconds": "{count} seconds",
+    "system": "System PATH",
+    "bundled": "Bundled",
+    "custom": "Custom path",
+    "error": "Error",
+    "warn": "Warning",
+    "info": "Info",
+    "debug": "Debug"
+  },
+  "tools": {
+    "checkEnvironment": "Check environment",
+    "checking": "Checking...",
+    "notChecked": "Not checked yet",
+    "version": "Version",
+    "source": "Source",
+    "binaryPath": "Binary path",
+    "choose": "Choose file",
+    "available": "Available",
+    "unavailable": "Unavailable"
+  },
+  "logging": {
+    "directory": "Log directory",
+    "file": "Current log file",
+    "openDirectory": "Open logs folder",
+    "clearOld": "Clear old logs",
+    "clearConfirm": "Clear old log files? The active log file will be kept.",
+    "cleared": "Old log files cleared: {count}."
+  },
+  "runtime": {
+    "version": "Version",
+    "platform": "Platform",
+    "architecture": "Architecture",
+    "electron": "Electron",
+    "node": "Node.js",
+    "userData": "userData directory",
+    "logDirectory": "Log directory",
+    "configFile": "Configuration file"
+  },
+  "danger": {
+    "resetTitle": "Reset configuration",
+    "resetDescription": "Deletes user devices, stream profiles and settings, then creates a new default config.",
+    "resetConfirm": "Reset configuration? Devices, profiles and settings will be removed."
+  },
+  "states": {
+    "unavailable": "Unavailable",
+    "notImplemented": "Not implemented"
+  }
+}

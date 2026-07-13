@@ -1,0 +1,99 @@
+{
+  "navigation": {
+    "profilesTitle": "Профили трансляции",
+    "profilesDescription": "Профили трансляции",
+    "diagnosticsTitle": "Настройки / Диагностика",
+    "diagnosticsDescription": "Настройки и диагностика"
+  },
+  "language": {
+    "title": "Язык интерфейса",
+    "english": "English",
+    "russian": "Русский"
+  },
+  "page": {
+    "label": "Настройки / Диагностика",
+    "title": "Настройки",
+    "description": "Локальные настройки приложения, диагностика инструментов и runtime-информация."
+  },
+  "sections": {
+    "general": "General",
+    "tools": "Tools",
+    "logging": "Logging",
+    "runtime": "About / Runtime",
+    "danger": "Danger Zone"
+  },
+  "fields": {
+    "autoReconnect": "Автоматически подключать сохранённые шлемы",
+    "launchAtStartup": "Запускать приложение вместе с системой",
+    "closeBehavior": "Поведение при закрытии окна",
+    "runtimePollingInterval": "Интервал обновления runtime-данных",
+    "adbSource": "Источник ADB",
+    "adbPath": "Пользовательский путь к ADB",
+    "scrcpySource": "Источник scrcpy",
+    "scrcpyPath": "Пользовательский путь к scrcpy",
+    "logLevel": "Уровень логирования",
+    "verboseLogging": "Подробное техническое логирование"
+  },
+  "descriptions": {
+    "autoReconnect": "При запуске приложения и потере соединения VR Control Center будет повторно подключаться к известным адресам устройств.",
+    "launchAtStartup": "Запускает VR Control Center при входе пользователя в Windows или macOS.",
+    "launchAtStartupUnavailable": "Интеграция автозапуска подготовлена, но пока не реализована.",
+    "closeBehavior": "Определяет, что происходит при закрытии главного окна.",
+    "trayUnavailable": "Режим трея пока не реализован.",
+    "runtimePollingInterval": "Управляет частотой обновления батареи и текущего приложения подключённых устройств.",
+    "customPath": "Выберите локальный исполняемый файл через безопасный системный диалог.",
+    "bundledUnavailable": "Bundled-бинарники не включены в эту сборку.",
+    "verboseLogging": "Добавляет дополнительные диагностические сведения для ADB, scrcpy и runtime polling."
+  },
+  "options": {
+    "quit": "Закрывать приложение",
+    "minimizeToTray": "Сворачивать в трей",
+    "ask": "Спрашивать каждый раз",
+    "seconds": "{count} секунд",
+    "system": "System PATH",
+    "bundled": "Bundled",
+    "custom": "Пользовательский путь",
+    "error": "Error",
+    "warn": "Warning",
+    "info": "Info",
+    "debug": "Debug"
+  },
+  "tools": {
+    "checkEnvironment": "Проверить окружение",
+    "checking": "Проверка...",
+    "notChecked": "Ещё не проверено",
+    "version": "Версия",
+    "source": "Источник",
+    "binaryPath": "Путь к бинарнику",
+    "choose": "Выбрать файл",
+    "available": "Доступен",
+    "unavailable": "Недоступен"
+  },
+  "logging": {
+    "directory": "Каталог логов",
+    "file": "Текущий файл лога",
+    "openDirectory": "Открыть папку логов",
+    "clearOld": "Очистить старые логи",
+    "clearConfirm": "Очистить старые файлы логов? Активный файл будет сохранён.",
+    "cleared": "Старые файлы логов очищены: {count}."
+  },
+  "runtime": {
+    "version": "Версия",
+    "platform": "Платформа",
+    "architecture": "Архитектура",
+    "electron": "Electron",
+    "node": "Node.js",
+    "userData": "Каталог userData",
+    "logDirectory": "Каталог логов",
+    "configFile": "Файл конфигурации"
+  },
+  "danger": {
+    "resetTitle": "Сбросить конфигурацию",
+    "resetDescription": "Удаляет пользовательские устройства, профили и настройки и создаёт новый default config.",
+    "resetConfirm": "Сбросить конфигурацию? Устройства, профили и настройки будут удалены."
+  },
+  "states": {
+    "unavailable": "Недоступно",
+    "notImplemented": "Не реализовано"
+  }
+}

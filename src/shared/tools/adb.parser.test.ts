@@ -44,4 +44,23 @@ describe('parseAdbDevices', () => {
       }
     ])
   })
+
+  it('parses adb devices -l output with metadata', () => {
+    expect(
+      parseAdbDevices(
+        'List of devices attached\n10.0.0.2:5555 device product:vr model:Quest_3 transport_id:7\n10.0.0.3:5555 offline transport_id:8\n'
+      )
+    ).toEqual([
+      {
+        serial: '10.0.0.2:5555',
+        state: 'device',
+        rawState: 'device'
+      },
+      {
+        serial: '10.0.0.3:5555',
+        state: 'offline',
+        rawState: 'offline'
+      }
+    ])
+  })
 })

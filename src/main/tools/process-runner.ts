@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process'
+import { logger } from '../logger/logger'
 
 export interface RunCommandOptions {
   timeoutMs: number
@@ -17,6 +18,8 @@ export const runCommand = (
   options: RunCommandOptions
 ): Promise<RunCommandResult> => {
   return new Promise((resolve, reject) => {
+    const startedAt = Date.now()
+    logger.debug('Starting short-lived command', { executable, args, timeoutMs: options.timeoutMs })
     const child = spawn(executable, args, {
       shell: false,
       windowsHide: true
@@ -41,6 +44,7 @@ export const runCommand = (
 
     child.on('error', (error) => {
       clearTimeout(timeout)
+      logger.errorWithCause('Short-lived command failed to start', error, { executable, args })
       reject(error)
     })
 
@@ -55,10 +59,27 @@ export const runCommand = (
       }
 
       if (didTimeout) {
-        reject(new Error(`${executable} timed out after ${options.timeoutMs}ms`))
+        const error = new Error(`${executable} timed out after ${options.timeoutMs}ms`)
+        logger.warn('Short-lived command timed out', {
+          executable,
+          args,
+          durationMs: Date.now() - startedAt,
+          stdout: result.stdout,
+          stderr: result.stderr
+        })
+        reject(error)
         return
       }
 
+      logger.debug('Short-lived command completed', {
+        executable,
+        args,
+        durationMs: Date.now() - startedAt,
+        exitCode,
+        signal,
+        stdout: result.stdout,
+        stderr: result.stderr
+      })
       resolve(result)
     })
   })

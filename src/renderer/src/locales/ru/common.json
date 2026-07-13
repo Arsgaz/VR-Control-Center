@@ -1,0 +1,36 @@
+{
+  "app": {
+    "name": "VR Control Center",
+    "mode": "Локальный режим управления"
+  },
+  "actions": {
+    "add": "Добавить",
+    "cancel": "Отмена",
+    "close": "Закрыть",
+    "create": "Создать",
+    "clear": "Очистить",
+    "collapse": "Свернуть",
+    "connect": "Подключить",
+    "connecting": "Подключение...",
+    "delete": "Удалить",
+    "disconnect": "Отключить",
+    "disconnecting": "Отключение...",
+    "discard": "Не сохранять",
+    "duplicate": "Дублировать",
+    "edit": "Изменить",
+    "expand": "Развернуть",
+    "more": "Подробнее",
+    "open": "Открыть",
+    "refresh": "Обновить",
+    "reset": "Сбросить",
+    "save": "Сохранить",
+    "start": "Запустить",
+    "stop": "Остановить"
+  },
+  "states": {
+    "available": "Доступно",
+    "unavailable": "Недоступно",
+    "unknown": "Неизвестно",
+    "none": "-"
+  }
+}
