@@ -1,4 +1,6 @@
 import { app } from 'electron'
+import { readdir, rm } from 'node:fs/promises'
+import { join, resolve } from 'node:path'
 import log from 'electron-log/main'
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
@@ -52,6 +54,32 @@ export const getTechnicalLogInfo = (): TechnicalLogInfo => {
     directory: app.getPath('logs'),
     file: log.transports.file.getFile().path
   }
+}
+
+export const applyLoggerSettings = (level: LogLevel, verboseLogging: boolean): void => {
+  const effectiveLevel = verboseLogging && level !== 'debug' ? 'debug' : level
+  log.transports.file.level = effectiveLevel
+  log.transports.console.level = effectiveLevel === 'debug' ? 'debug' : level
+}
+
+export const clearOldTechnicalLogs = async (): Promise<number> => {
+  const info = getTechnicalLogInfo()
+  const activeFile = resolve(info.file)
+  const entries = await readdir(info.directory, { withFileTypes: true })
+  let deletedFiles = 0
+
+  for (const entry of entries) {
+    if (!entry.isFile()) continue
+
+    const file = resolve(join(info.directory, entry.name))
+    if (file === activeFile) continue
+    if (!entry.name.endsWith('.log')) continue
+
+    await rm(file, { force: true })
+    deletedFiles += 1
+  }
+
+  return deletedFiles
 }
 
 export const logger = {

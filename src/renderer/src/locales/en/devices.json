@@ -1,0 +1,93 @@
+{
+  "navigation": {
+    "title": "Devices",
+    "description": "Management"
+  },
+  "section": {
+    "label": "Devices / Management",
+    "title": "Devices",
+    "description": "Local headset configuration and runtime controls for ADB and scrcpy."
+  },
+  "empty": {
+    "label": "No devices configured",
+    "title": "Add the first VR headset",
+    "description": "Devices are stored in the local configuration file and get fresh runtime state on each app start."
+  },
+  "actions": {
+    "addDevice": "Add device",
+    "refreshAdbDevices": "Refresh ADB devices",
+    "refreshing": "Refreshing...",
+    "startStream": "Start stream",
+    "stopStream": "Stop stream",
+    "starting": "Starting...",
+    "stopping": "Stopping...",
+    "launchGame": "Launch game"
+  },
+  "status": {
+    "label": "Status",
+    "connected": "Connected",
+    "offline": "Offline",
+    "connecting": "Connecting",
+    "disconnecting": "Disconnecting",
+    "connectionError": "Connection error",
+    "unauthorized": "Unauthorized"
+  },
+  "battery": {
+    "label": "Battery",
+    "charging": "charging"
+  },
+  "application": {
+    "label": "Application",
+    "unknown": "Unknown"
+  },
+  "stream": {
+    "label": "Stream",
+    "streaming": "Streaming",
+    "notStreaming": "Not streaming",
+    "starting": "Starting stream",
+    "stopping": "Stopping stream",
+    "failed": "Stream failed"
+  },
+  "adbDevices": {
+    "title": "ADB devices",
+    "empty": "No ADB devices found."
+  },
+  "form": {
+    "addTitle": "Add device",
+    "editTitle": "Edit device",
+    "name": "Name",
+    "address": "IP:port",
+    "streamProfile": "Stream profile",
+    "noProfile": "No profile",
+    "namePlaceholder": "Quest 01",
+    "addressPlaceholder": "192.168.1.100:5555"
+  },
+  "launchGame": {
+    "title": "Launch game",
+    "search": "Search",
+    "searchPlaceholder": "Search game library",
+    "emptyTitle": "No games available",
+    "emptyDescription": "Game Library is not configured yet. This overlay is ready for future game selection."
+  },
+  "diagnostics": {
+    "title": "Device details",
+    "name": "Name",
+    "address": "Address",
+    "streamProfile": "Stream profile",
+    "adbState": "ADB state",
+    "adbDetails": "ADB details",
+    "streamState": "Stream state",
+    "streamDetails": "Stream details",
+    "sessionId": "Session ID",
+    "lastError": "Last error",
+    "battery": "Battery",
+    "batteryStatus": "Battery status",
+    "batteryTemperature": "Battery temperature",
+    "batteryVoltage": "Battery voltage",
+    "application": "Application",
+    "foregroundActivity": "Foreground activity",
+    "lastUpdate": "Last update",
+    "preparedTitle": "Prepared diagnostics",
+    "preparedDescription": "Model, serial, OS version, battery details, temperature, Wi-Fi, memory, storage and foreground activity will be added when runtime collection is implemented."
+  }
+}

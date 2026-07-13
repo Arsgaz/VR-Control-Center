@@ -1,157 +1,213 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import type {
+  DeviceConfig,
+  DeviceConfigUpdate,
+  NewDeviceConfig
+} from '../../../../shared/contracts/config.contracts'
+import DeviceDiagnosticsModal from '../devices/DeviceDiagnosticsModal.vue'
+import DeviceCard from '../devices/DeviceCard.vue'
+import DeviceFormModal from '../devices/DeviceFormModal.vue'
+import LaunchGameModal from '../devices/LaunchGameModal.vue'
+import {
+  createEmptyDeviceOverlaySelection,
+  openDiagnosticsOverlay,
+  openLaunchGameOverlay
+} from '../devices/device-overlay.model'
 import { useHeadsetController } from '../../composables/useHeadsetController'
 
 const headset = useHeadsetController()
+const { t } = useI18n()
+const isDeviceFormOpen = ref(false)
+const editingDevice = ref<DeviceConfig | null>(null)
+const overlaySelection = ref(createEmptyDeviceOverlaySelection())
 
-const onAddressChange = (event: Event): void => {
-  const input = event.target
-  if (input instanceof HTMLInputElement) {
-    void headset.updateDeviceAddress(input.value)
+const launchGameDevice = computed(() => {
+  return (
+    headset.configuredDevices.value.find(
+      (device) => device.id === overlaySelection.value.launchGameDeviceId
+    ) ?? null
+  )
+})
+
+const diagnosticsDevice = computed(() => {
+  return (
+    headset.configuredDevices.value.find(
+      (device) => device.id === overlaySelection.value.diagnosticsDeviceId
+    ) ?? null
+  )
+})
+
+const openCreateForm = (): void => {
+  editingDevice.value = null
+  isDeviceFormOpen.value = true
+}
+
+const openEditForm = (device: DeviceConfig): void => {
+  editingDevice.value = device
+  isDeviceFormOpen.value = true
+}
+
+const closeDeviceForm = (): void => {
+  isDeviceFormOpen.value = false
+  editingDevice.value = null
+}
+
+const createDevice = async (device: NewDeviceConfig): Promise<void> => {
+  const saved = await headset.addDevice(device)
+  if (saved) {
+    closeDeviceForm()
   }
 }
 
-const onCropChange = (event: Event): void => {
-  const input = event.target
-  if (input instanceof HTMLInputElement) {
-    void headset.updateStreamCrop(input.value)
+const updateDevice = async (id: string, changes: DeviceConfigUpdate): Promise<void> => {
+  const saved = await headset.updateDevice(id, changes)
+  if (saved) {
+    closeDeviceForm()
   }
 }
 
-const onNoAudioChange = (event: Event): void => {
-  const input = event.target
-  if (input instanceof HTMLInputElement) {
-    void headset.updateNoAudio(input.checked)
+const deleteDevice = async (device: DeviceConfig): Promise<void> => {
+  const confirmed = window.confirm(t('dialogs.delete.confirm', { name: device.name }))
+  if (!confirmed) {
+    return
+  }
+
+  const deleted = await headset.deleteDevice(device)
+  if (deleted) {
+    closeDeviceForm()
   }
 }
 
+const openLaunchGame = (device: DeviceConfig): void => {
+  overlaySelection.value = openLaunchGameOverlay(overlaySelection.value, device.id)
+}
+
+const openDiagnostics = (device: DeviceConfig): void => {
+  overlaySelection.value = openDiagnosticsOverlay(overlaySelection.value, device.id)
+}
+
+const closeLaunchGame = (): void => {
+  overlaySelection.value = {
+    ...overlaySelection.value,
+    launchGameDeviceId: null
+  }
+}
+
+const closeDiagnostics = (): void => {
+  overlaySelection.value = {
+    ...overlaySelection.value,
+    diagnosticsDeviceId: null
+  }
+}
 </script>
 
 <template>
-  <section class="section-content" aria-labelledby="devices-title">
-    <div class="section-heading">
-      <p class="section-label">Devices / Управление</p>
-      <h2 id="devices-title">Test headset</h2>
-      <p class="muted-text">
-        One local headset card is used for the first workflow and can later become a reusable device card.
-      </p>
-    </div>
-
-    <section class="info-card device-card" aria-label="Test headset controls">
-      <div class="card-header">
-        <div>
-          <p class="section-label">Device</p>
-          <h3>Test headset</h3>
-        </div>
+  <section class="section-content devices-section" aria-labelledby="devices-title">
+    <div class="section-heading section-heading-row">
+      <div>
+        <p class="section-label">{{ t('devices.section.label') }}</p>
+        <h2 id="devices-title">{{ t('devices.section.title') }}</h2>
+        <p class="muted-text">
+          {{ t('devices.section.description') }}
+        </p>
       </div>
 
-      <div class="form-grid">
-        <label>
-          <span>Address IP:port</span>
-          <input
-            :value="headset.activeDevice.value?.address ?? ''"
-            type="text"
-            autocomplete="off"
-            placeholder="192.168.1.100:5555"
-            @change="onAddressChange"
-          />
-        </label>
-
-        <label>
-          <span>Crop</span>
-          <input
-            :value="headset.activeStreamProfile.value?.crop ?? ''"
-            type="text"
-            autocomplete="off"
-            placeholder="Empty"
-            @change="onCropChange"
-          />
-        </label>
-
-        <label class="toggle-row">
-          <input
-            :checked="headset.activeStreamProfile.value?.noAudio ?? true"
-            type="checkbox"
-            @change="onNoAudioChange"
-          />
-          <span>No audio</span>
-        </label>
-      </div>
-
-      <div class="state-grid">
-        <div class="state-box">
-          <p class="section-label">ADB connection</p>
-          <strong :class="`state-${headset.adbConnectionState.value}`">
-            {{ headset.adbConnectionState.value }}
-          </strong>
-          <span>{{ headset.adbConnectionMessage.value }}</span>
-        </div>
-
-        <div class="state-box">
-          <p class="section-label">scrcpy stream</p>
-          <strong :class="`state-${headset.scrcpyStatus.value?.state ?? 'stopped'}`">
-            {{ headset.scrcpyStatus.value?.state ?? 'stopped' }}
-          </strong>
-          <span>{{ headset.scrcpyStatus.value?.message ?? 'scrcpy is not running' }}</span>
-        </div>
-      </div>
-
-      <div class="actions-grid">
+      <div class="section-actions">
         <button
           type="button"
           class="secondary-button"
           :disabled="headset.isBusy.value || !headset.isAdbAvailable.value"
           @click="headset.refreshDevices"
         >
-          {{ headset.operation.value === 'devices' ? 'Refreshing...' : 'Refresh devices' }}
+          {{
+            headset.operation.value === 'devices'
+              ? t('devices.actions.refreshing')
+              : t('devices.actions.refreshAdbDevices')
+          }}
         </button>
-        <button
-          type="button"
-          class="primary-button"
-          :disabled="headset.isBusy.value || !headset.isAdbAvailable.value"
-          @click="headset.connectDevice"
-        >
-          {{ headset.operation.value === 'connect' ? 'Connecting...' : 'Connect' }}
-        </button>
-        <button
-          type="button"
-          class="secondary-button"
-          :disabled="headset.isBusy.value || !headset.isAdbAvailable.value"
-          @click="headset.disconnectDevice"
-        >
-          {{ headset.operation.value === 'disconnect' ? 'Disconnecting...' : 'Disconnect' }}
-        </button>
-        <button
-          type="button"
-          class="primary-button"
-          :disabled="
-            headset.isBusy.value ||
-            !headset.isScrcpyAvailable.value ||
-            headset.isScrcpyRunning.value
-          "
-          @click="headset.startScrcpy"
-        >
-          {{ headset.operation.value === 'startScrcpy' ? 'Starting...' : 'Start stream' }}
-        </button>
-        <button
-          type="button"
-          class="danger-button"
-          :disabled="headset.isBusy.value || !headset.isScrcpyRunning.value"
-          @click="headset.stopScrcpy"
-        >
-          {{ headset.operation.value === 'stopScrcpy' ? 'Stopping...' : 'Stop stream' }}
+        <button type="button" class="primary-button" @click="openCreateForm">
+          {{ t('devices.actions.addDevice') }}
         </button>
       </div>
+    </div>
 
-      <div class="devices-list">
-        <p class="section-label">ADB devices</p>
-        <p v-if="headset.devices.value.length === 0" class="muted-text">No ADB devices found.</p>
-        <ul v-else>
-          <li v-for="device in headset.devices.value" :key="device.serial">
-            <span>{{ device.serial }}</span>
-            <span>{{ device.rawState }}</span>
-          </li>
-        </ul>
+    <section
+      v-if="headset.configuredDevices.value.length === 0"
+      class="info-card empty-state-card"
+      :aria-label="t('devices.empty.label')"
+    >
+      <div>
+        <p class="section-label">{{ t('devices.empty.label') }}</p>
+        <h3>{{ t('devices.empty.title') }}</h3>
       </div>
+      <p class="muted-text">
+        {{ t('devices.empty.description') }}
+      </p>
+      <button type="button" class="primary-button" @click="openCreateForm">
+        {{ t('devices.actions.addDevice') }}
+      </button>
     </section>
+
+    <section v-else class="device-grid" :aria-label="t('devices.title')">
+      <DeviceCard
+        v-for="device in headset.configuredDevices.value"
+        :key="device.id"
+        :device="device"
+        :profile="headset.getStreamProfileForDevice(device)"
+        :runtime="headset.getRuntimeForDevice(device.id)"
+        :operation="headset.getOperationForDevice(device.id)"
+        :is-adb-available="headset.isAdbAvailable.value"
+        :is-scrcpy-available="headset.isScrcpyAvailable.value"
+        :is-any-stream-running="headset.isScrcpyRunning.value"
+        :is-this-stream-running="headset.isStreamRunningForDevice(device)"
+        @connect="headset.connectDevice"
+        @disconnect="headset.disconnectDevice"
+        @start-stream="headset.startScrcpy"
+        @stop-stream="headset.stopScrcpy"
+        @launch-game="openLaunchGame"
+        @diagnostics="openDiagnostics"
+        @edit="openEditForm"
+      />
+    </section>
+
+    <section class="devices-list">
+      <p class="section-label">{{ t('devices.adbDevices.title') }}</p>
+      <p v-if="headset.adbDevices.value.length === 0" class="muted-text">
+        {{ t('devices.adbDevices.empty') }}
+      </p>
+      <ul v-else>
+        <li v-for="device in headset.adbDevices.value" :key="device.serial">
+          <span>{{ device.serial }}</span>
+          <span>{{ device.rawState }}</span>
+        </li>
+      </ul>
+    </section>
+
+    <DeviceFormModal
+      v-if="isDeviceFormOpen"
+      :devices="headset.configuredDevices.value"
+      :stream-profiles="headset.streamProfiles.value"
+      :device="editingDevice"
+      @cancel="closeDeviceForm"
+      @create="createDevice"
+      @update="updateDevice"
+      @delete="deleteDevice"
+    />
+
+    <LaunchGameModal
+      v-if="launchGameDevice"
+      :device="launchGameDevice"
+      @close="closeLaunchGame"
+    />
+
+    <DeviceDiagnosticsModal
+      v-if="diagnosticsDevice"
+      :device="diagnosticsDevice"
+      :profile="headset.getStreamProfileForDevice(diagnosticsDevice)"
+      :runtime="headset.getRuntimeForDevice(diagnosticsDevice.id)"
+      @close="closeDiagnostics"
+    />
   </section>
 </template>

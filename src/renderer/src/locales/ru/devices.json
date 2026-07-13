@@ -1,0 +1,93 @@
+{
+  "navigation": {
+    "title": "Устройства",
+    "description": "Управление"
+  },
+  "section": {
+    "label": "Устройства / Управление",
+    "title": "Устройства",
+    "description": "Локальная настройка шлемов и управление ADB/scrcpy."
+  },
+  "empty": {
+    "label": "Шлемы не настроены",
+    "title": "Добавьте первый VR-шлем",
+    "description": "Устройства сохраняются в локальной конфигурации и получают новое runtime-состояние при каждом запуске приложения."
+  },
+  "actions": {
+    "addDevice": "Добавить устройство",
+    "refreshAdbDevices": "Обновить ADB-устройства",
+    "refreshing": "Обновление...",
+    "startStream": "Запустить трансляцию",
+    "stopStream": "Остановить трансляцию",
+    "starting": "Запуск...",
+    "stopping": "Остановка...",
+    "launchGame": "Запустить игру"
+  },
+  "status": {
+    "label": "Статус",
+    "connected": "Подключён",
+    "offline": "Не в сети",
+    "connecting": "Подключение",
+    "disconnecting": "Отключение",
+    "connectionError": "Ошибка подключения",
+    "unauthorized": "Нет авторизации"
+  },
+  "battery": {
+    "label": "Батарея",
+    "charging": "заряжается"
+  },
+  "application": {
+    "label": "Приложение",
+    "unknown": "Неизвестно"
+  },
+  "stream": {
+    "label": "Трансляция",
+    "streaming": "Идёт",
+    "notStreaming": "Нет",
+    "starting": "Запуск трансляции",
+    "stopping": "Остановка трансляции",
+    "failed": "Ошибка трансляции"
+  },
+  "adbDevices": {
+    "title": "ADB-устройства",
+    "empty": "ADB-устройства не найдены."
+  },
+  "form": {
+    "addTitle": "Добавить устройство",
+    "editTitle": "Изменить устройство",
+    "name": "Название",
+    "address": "IP:port",
+    "streamProfile": "Профиль трансляции",
+    "noProfile": "Без профиля",
+    "namePlaceholder": "Quest 01",
+    "addressPlaceholder": "192.168.1.100:5555"
+  },
+  "launchGame": {
+    "title": "Запуск игры",
+    "search": "Поиск",
+    "searchPlaceholder": "Поиск в библиотеке игр",
+    "emptyTitle": "Игры пока недоступны",
+    "emptyDescription": "Библиотека игр ещё не настроена. Этот overlay подготовлен для будущего выбора игры."
+  },
+  "diagnostics": {
+    "title": "Детали устройства",
+    "name": "Название",
+    "address": "Адрес",
+    "streamProfile": "Профиль трансляции",
+    "adbState": "Состояние ADB",
+    "adbDetails": "Детали ADB",
+    "streamState": "Состояние трансляции",
+    "streamDetails": "Детали трансляции",
+    "sessionId": "ID сессии",
+    "lastError": "Последняя ошибка",
+    "battery": "Батарея",
+    "batteryStatus": "Статус батареи",
+    "batteryTemperature": "Температура батареи",
+    "batteryVoltage": "Напряжение батареи",
+    "application": "Приложение",
+    "foregroundActivity": "Foreground activity",
+    "lastUpdate": "Последнее обновление",
+    "preparedTitle": "Подготовленная диагностика",
+    "preparedDescription": "Модель, серийный номер, версия ОС, детали батареи, температура, Wi-Fi, память, хранилище и foreground activity будут добавлены после реализации сбора runtime-данных."
+  }
+}

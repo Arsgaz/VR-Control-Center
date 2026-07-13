@@ -1,0 +1,43 @@
+{
+  "title": {
+    "label": "Журнал оператора",
+    "expanded": "Пользовательский журнал",
+    "collapsed": "Журнал ({count})"
+  },
+  "empty": "Пользовательских событий пока нет.",
+  "device": "Устройство: {id}",
+  "events": {
+    "configurationReset": "Конфигурация сброшена к значениям по умолчанию.",
+    "configLoadFailed": "Не удалось загрузить конфигурацию.",
+    "environmentCheck": "Проверка ADB и scrcpy.",
+    "adbFound": "ADB найден.",
+    "adbNotFound": "ADB не найден.",
+    "adbInstallHint": "Проверьте установку ADB и PATH.",
+    "scrcpyFound": "scrcpy найден.",
+    "scrcpyNotFound": "scrcpy не найден.",
+    "scrcpyInstallHint": "Проверьте установку scrcpy и PATH.",
+    "adbUnavailable": "ADB недоступен.",
+    "runEnvironmentFirst": "Сначала выполните проверку окружения.",
+    "devicesRefreshed": "Список ADB-устройств обновлён.",
+    "devicesFound": "Найдено устройств: {count}.",
+    "deviceAdded": "{name} добавлен.",
+    "deviceUpdated": "{name} обновлён.",
+    "deviceDeleted": "{name} удалён.",
+    "deviceConnected": "{name} подключён.",
+    "deviceConnectionFailed": "Не удалось подключить {name}.",
+    "deviceDisconnected": "{name} отключён.",
+    "deviceDisconnectFailed": "Не удалось отключить {name}.",
+    "streamStarted": "Трансляция {name} запущена.",
+    "streamStartFailed": "Не удалось запустить трансляцию {name}.",
+    "streamStopRequested": "Запрошена остановка трансляции {name}.",
+    "streamStopFailed": "Не удалось остановить трансляцию {name}.",
+    "streamStopped": "Трансляция {name} остановлена.",
+    "streamExitedError": "Трансляция {name} завершилась с ошибкой.",
+    "technicalLogsHint": "Проверьте технические логи.",
+    "connectBeforeStream": "Подключите шлем через ADB перед запуском трансляции.",
+    "connectionTroubleshooting": "Проверьте IP-адрес, питание устройства и подключение к сети.",
+    "disconnectTroubleshooting": "Проверьте состояние ADB и повторите попытку.",
+    "streamStartTroubleshooting": "Проверьте scrcpy, ADB-подключение и параметры запуска.",
+    "streamStopTroubleshooting": "Проверьте состояние процесса scrcpy."
+  }
+}

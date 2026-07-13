@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
 type AppSection = 'devices' | 'profiles' | 'diagnostics'
 
 interface NavigationItem {
@@ -15,33 +18,35 @@ const emit = defineEmits<{
   change: [section: AppSection]
 }>()
 
-const items: NavigationItem[] = [
+const { t } = useI18n()
+
+const items = computed<NavigationItem[]>(() => [
   {
     id: 'devices',
-    label: 'Devices',
-    description: 'Управление'
+    label: t('devices.navigation.title'),
+    description: t('devices.navigation.description')
   },
   {
     id: 'profiles',
-    label: 'Stream profiles',
-    description: 'Профили трансляции'
+    label: t('settings.navigation.profilesTitle'),
+    description: t('settings.navigation.profilesDescription')
   },
   {
     id: 'diagnostics',
-    label: 'Settings / Diagnostics',
-    description: 'Окружение и логи'
+    label: t('settings.navigation.diagnosticsTitle'),
+    description: t('settings.navigation.diagnosticsDescription')
   }
-]
+])
 </script>
 
 <template>
   <header class="app-navigation">
     <div class="brand-block">
-      <p class="eyebrow">Local control mode</p>
-      <h1>VR Control Center</h1>
+      <p class="eyebrow">{{ t('common.app.mode') }}</p>
+      <h1>{{ t('common.app.name') }}</h1>
     </div>
 
-    <nav aria-label="Application sections">
+    <nav :aria-label="t('common.app.name')">
       <button
         v-for="item in items"
         :key="item.id"

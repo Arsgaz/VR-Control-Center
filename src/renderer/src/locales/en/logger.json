@@ -1,0 +1,43 @@
+{
+  "title": {
+    "label": "Operator log",
+    "expanded": "User event journal",
+    "collapsed": "Journal ({count})"
+  },
+  "empty": "No user events yet.",
+  "device": "Device: {id}",
+  "events": {
+    "configurationReset": "Configuration reset to defaults.",
+    "configLoadFailed": "Configuration could not be loaded.",
+    "environmentCheck": "Checking ADB and scrcpy.",
+    "adbFound": "ADB found.",
+    "adbNotFound": "ADB not found.",
+    "adbInstallHint": "Check ADB installation and PATH.",
+    "scrcpyFound": "scrcpy found.",
+    "scrcpyNotFound": "scrcpy not found.",
+    "scrcpyInstallHint": "Check scrcpy installation and PATH.",
+    "adbUnavailable": "ADB is unavailable.",
+    "runEnvironmentFirst": "Run environment check first.",
+    "devicesRefreshed": "ADB device list refreshed.",
+    "devicesFound": "Found devices: {count}.",
+    "deviceAdded": "{name} added.",
+    "deviceUpdated": "{name} updated.",
+    "deviceDeleted": "{name} deleted.",
+    "deviceConnected": "{name} connected.",
+    "deviceConnectionFailed": "{name} connection failed.",
+    "deviceDisconnected": "{name} disconnected.",
+    "deviceDisconnectFailed": "{name} disconnect failed.",
+    "streamStarted": "{name} stream started.",
+    "streamStartFailed": "{name} stream failed to start.",
+    "streamStopRequested": "{name} stream stop requested.",
+    "streamStopFailed": "{name} stream stop failed.",
+    "streamStopped": "{name} stream stopped.",
+    "streamExitedError": "{name} stream exited with error.",
+    "technicalLogsHint": "Check technical logs.",
+    "connectBeforeStream": "Connect the headset through ADB before starting stream.",
+    "connectionTroubleshooting": "Check IP address, device power and network connection.",
+    "disconnectTroubleshooting": "Check ADB state and try again.",
+    "streamStartTroubleshooting": "Check scrcpy, ADB connection and launch parameters.",
+    "streamStopTroubleshooting": "Check scrcpy process state."
+  }
+}

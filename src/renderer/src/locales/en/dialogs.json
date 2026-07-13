@@ -1,0 +1,24 @@
+{
+  "delete": {
+    "confirm": "Delete {name}? Runtime state will be cleared."
+  },
+  "validation": {
+    "deviceNameRequired": "Device name is required.",
+    "deviceAddressRequired": "Device address is required.",
+    "deviceAddressFormat": "Address must use IP:port format, for example 192.168.1.100:5555.",
+    "deviceAddressUnique": "Device address must be unique.",
+    "streamProfileMissing": "Selected stream profile does not exist."
+  },
+  "errors": {
+    "configLoad": "Configuration could not be loaded.",
+    "configReset": "Configuration could not be reset.",
+    "languageUpdate": "Language could not be updated.",
+    "settingsUpdate": "Settings could not be updated.",
+    "addDevice": "Device could not be added.",
+    "updateDevice": "Device could not be updated.",
+    "deleteDevice": "Device could not be deleted.",
+    "addProfile": "Stream profile could not be added.",
+    "updateProfile": "Stream profile could not be updated.",
+    "deleteProfile": "Stream profile could not be deleted."
+  }
+}

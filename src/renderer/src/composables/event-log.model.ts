@@ -1,3 +1,5 @@
+import { translate } from '../i18n'
+
 export type UserEventLevel = 'info' | 'success' | 'warning' | 'error'
 
 export interface UserEventEntry {
@@ -49,33 +51,33 @@ export const toUserFacingError = (
   const messages: Record<typeof operation, UserEventInput> = {
     environment: {
       level: 'error',
-      message: 'Не удалось проверить окружение.',
-      description: 'Проверьте, что ADB и scrcpy установлены и доступны из PATH.'
+      message: translate('logger.events.adbNotFound'),
+      description: translate('logger.events.adbInstallHint')
     },
     devices: {
       level: 'error',
-      message: 'Не удалось обновить список устройств.',
-      description: 'Проверьте ADB, USB/Wi-Fi подключение и повторите попытку.'
+      message: translate('dialogs.errors.updateDevice'),
+      description: translate('logger.events.runEnvironmentFirst')
     },
     connect: {
       level: 'error',
-      message: 'Не удалось подключить шлем.',
-      description: 'Проверьте IP-адрес, питание устройства и подключение к сети.'
+      message: translate('logger.events.deviceConnectionFailed', { name: 'Device' }),
+      description: translate('logger.events.connectBeforeStream')
     },
     disconnect: {
       level: 'error',
-      message: 'Не удалось отключить шлем.',
-      description: 'Проверьте состояние ADB-подключения и повторите попытку.'
+      message: translate('logger.events.deviceDisconnectFailed', { name: 'Device' }),
+      description: translate('logger.events.runEnvironmentFirst')
     },
     startStream: {
       level: 'error',
-      message: 'Не удалось запустить трансляцию.',
-      description: 'Проверьте scrcpy, ADB-подключение и параметры запуска.'
+      message: translate('logger.events.streamStartFailed', { name: 'Device' }),
+      description: translate('logger.events.connectBeforeStream')
     },
     stopStream: {
       level: 'error',
-      message: 'Не удалось остановить трансляцию.',
-      description: 'Проверьте состояние процесса scrcpy.'
+      message: translate('logger.events.streamStopFailed', { name: 'Device' }),
+      description: translate('logger.events.technicalLogsHint')
     }
   }
 

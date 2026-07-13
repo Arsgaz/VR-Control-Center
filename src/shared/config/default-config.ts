@@ -1,28 +1,45 @@
-import { CONFIG_SCHEMA_VERSION, type AppConfig } from '../contracts/config.contracts'
+import { CONFIG_SCHEMA_VERSION, type AppConfig, type AppLanguage } from '../contracts/config.contracts'
 
-export const createDefaultConfig = (): AppConfig => ({
+export const resolveLanguageFromLocale = (locale: string): AppLanguage => {
+  return locale.toLowerCase().startsWith('ru') ? 'ru' : 'en'
+}
+
+export const createDefaultConfig = (
+  language: AppLanguage = 'en',
+  options: { verboseLogging?: boolean } = {}
+): AppConfig => ({
   version: CONFIG_SCHEMA_VERSION,
   application: {
     displayName: 'VR Control Center'
   },
-  devices: [
-    {
-      id: 'test-headset',
-      name: 'Test headset',
-      address: '192.168.1.100:5555'
-    }
-  ],
+  devices: [],
   streamProfiles: [
     {
       id: 'default',
-      name: 'Default stream profile',
+      name: 'Balanced',
+      description: '',
       noAudio: true,
-      crop: ''
+      crop: '',
+      maxSize: 1280,
+      maxFps: 30,
+      videoBitRate: '6M',
+      videoCodec: 'h264'
     }
   ],
   settings: {
-    activeDeviceId: 'test-headset',
-    activeStreamProfileId: 'default'
+    activeDeviceId: null,
+    activeStreamProfileId: 'default',
+    language,
+    autoReconnect: true,
+    launchAtStartup: false,
+    closeBehavior: 'quit',
+    runtimePollingIntervalSeconds: 10,
+    adbSource: 'system',
+    adbPath: '',
+    scrcpySource: 'system',
+    scrcpyPath: '',
+    logLevel: 'info',
+    verboseLogging: options.verboseLogging ?? false
   },
   logger: {
     level: 'info',

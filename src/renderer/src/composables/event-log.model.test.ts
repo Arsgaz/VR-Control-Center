@@ -43,8 +43,8 @@ describe('event log model', () => {
   it('maps technical failures to user-facing events', () => {
     expect(toUserFacingError('connect')).toEqual({
       level: 'error',
-      message: 'Не удалось подключить шлем.',
-      description: 'Проверьте IP-адрес, питание устройства и подключение к сети.'
+      message: 'Device connection failed.',
+      description: 'Connect the headset through ADB before starting stream.'
     })
   })
 })

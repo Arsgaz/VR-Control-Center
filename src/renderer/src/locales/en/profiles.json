@@ -1,0 +1,85 @@
+{
+  "label": "Stream profiles",
+  "title": "Stream Profiles",
+  "description": "Manage reusable scrcpy launch parameters for headset streams.",
+  "list": {
+    "title": "Profiles",
+    "add": "Add profile",
+    "emptyTitle": "No stream profiles",
+    "emptyDescription": "Create a profile to define scrcpy geometry, video and audio parameters."
+  },
+  "editor": {
+    "createTitle": "New profile",
+    "editTitle": "Edit profile",
+    "noSelectionTitle": "Select a profile",
+    "noSelectionDescription": "Choose a profile from the list or create a new one.",
+    "unsaved": "Unsaved changes",
+    "saved": "Profile saved."
+  },
+  "sections": {
+    "general": "General",
+    "geometry": "Geometry",
+    "video": "Video",
+    "audio": "Audio",
+    "preview": "Preview"
+  },
+  "fields": {
+    "name": "Profile name",
+    "description": "Description",
+    "crop": "Crop area",
+    "maxSize": "Maximum image size",
+    "maxFps": "Maximum frames per second",
+    "videoBitRate": "Video bitrate",
+    "videoCodec": "Video codec",
+    "noAudio": "Keep audio on the headset"
+  },
+  "hints": {
+    "name": "Use a clear operator-facing name.",
+    "description": "Optional note for when this profile should be used.",
+    "crop": "Defines the source rectangle as width:height:x:y.",
+    "maxSize": "Limits the maximum width or height of the video stream.",
+    "maxFps": "Limits the maximum stream frame rate.",
+    "videoBitRate": "Affects video quality and network load. Examples: 4M, 8M, 12M.",
+    "videoCodec": "Defines the video codec. H.264 is the default option.",
+    "noAudio": "When enabled, scrcpy uses --no-audio and audio keeps playing on the headset."
+  },
+  "placeholders": {
+    "name": "Balanced",
+    "description": "Optional operator note",
+    "crop": "1600:900:2017:510",
+    "videoBitRate": "6M"
+  },
+  "options": {
+    "unlimited": "No limit",
+    "h264": "H.264",
+    "h265": "H.265",
+    "bitratePresets": "Video bitrate presets"
+  },
+  "preview": {
+    "title": "scrcpy arguments",
+    "devicePlaceholder": "<device-address>"
+  },
+  "validation": {
+    "nameRequired": "Profile name is required.",
+    "nameUnique": "Profile name must be unique.",
+    "cropFormat": "Crop must use width:height:x:y with positive width and height.",
+    "maxSize": "Maximum image size must be a positive integer.",
+    "maxFps": "Maximum FPS must be a positive integer.",
+    "videoBitRate": "Video bitrate must use scrcpy format, for example 6M.",
+    "videoCodec": "Select a supported video codec."
+  },
+  "delete": {
+    "confirm": "Delete {name}?",
+    "used": "This profile is assigned to {count} device(s). Reassign those devices before deleting it."
+  },
+  "duplicate": {
+    "suffix": "Copy"
+  },
+  "unsaved": {
+    "title": "Unsaved changes",
+    "description": "Save changes before switching profiles?",
+    "save": "Save",
+    "discard": "Discard",
+    "cancel": "Cancel"
+  }
+}

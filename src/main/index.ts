@@ -1,8 +1,12 @@
 import { app, BrowserWindow } from 'electron'
 import { registerAppHandlers } from './ipc/app.handlers'
 import { registerConfigHandlers } from './ipc/config.handlers'
-import { registerHeadsetHandlers, stopScrcpyOnShutdown } from './ipc/headset.handlers'
-import { configureLogger, logger } from './logger/logger'
+import {
+  initializeHeadsetRuntime,
+  registerHeadsetHandlers,
+  stopScrcpyOnShutdown
+} from './ipc/headset.handlers'
+import { applyLoggerSettings, configureLogger, logger } from './logger/logger'
 import { createMainWindow } from './window/create-main-window'
 import { configurationService } from './config/configuration.service'
 import { migrateLegacyApplicationData } from './migration/app-name-migration'
@@ -19,7 +23,8 @@ app.whenReady().then(async () => {
   })
 
   await migrateLegacyApplicationData()
-  await configurationService.load()
+  const configState = await configurationService.load()
+  applyLoggerSettings(configState.config.settings.logLevel, configState.config.settings.verboseLogging)
 
   if (process.platform === 'win32') {
     app.setAppUserModelId('com.vrcontrolcenter.desktop')
@@ -42,6 +47,7 @@ app.whenReady().then(async () => {
   registerAppHandlers()
   registerConfigHandlers()
   registerHeadsetHandlers()
+  await initializeHeadsetRuntime()
   createMainWindow()
   logger.info('Application ready')
 

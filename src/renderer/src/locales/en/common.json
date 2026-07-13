@@ -1,0 +1,36 @@
+{
+  "app": {
+    "name": "VR Control Center",
+    "mode": "Local control mode"
+  },
+  "actions": {
+    "add": "Add",
+    "cancel": "Cancel",
+    "close": "Close",
+    "create": "Create",
+    "clear": "Clear",
+    "collapse": "Collapse",
+    "connect": "Connect",
+    "connecting": "Connecting...",
+    "delete": "Delete",
+    "disconnect": "Disconnect",
+    "disconnecting": "Disconnecting...",
+    "discard": "Discard",
+    "duplicate": "Duplicate",
+    "edit": "Edit",
+    "expand": "Expand",
+    "more": "More",
+    "open": "Open",
+    "refresh": "Refresh",
+    "reset": "Reset",
+    "save": "Save",
+    "start": "Start",
+    "stop": "Stop"
+  },
+  "states": {
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "unknown": "Unknown",
+    "none": "-"
+  }
+}
