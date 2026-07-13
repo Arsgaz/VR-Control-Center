@@ -1,4 +1,4 @@
-import type { DeviceConfig } from '../../shared/contracts/config.contracts'
+import type { DeviceConfig } from '@shared/contracts/config.contracts'
 import type {
   AdbDevice,
   DeviceRuntimeEvent,
@@ -7,23 +7,26 @@ import type {
   ScrcpyProcessEvent,
   ScrcpyStartResult,
   ScrcpyStopResult
-} from '../../shared/contracts/headset.contracts'
+} from '@shared/contracts/headset.contracts'
 import {
   connectAdbDevice,
   disconnectAdbDevice,
   getDeviceBattery,
   getForegroundApplication,
   listAdbDevices
-} from '../tools/adb.service'
-import { ScrcpyService } from '../tools/scrcpy.service'
-import { configurationService } from '../config/configuration.service'
-import { logger } from '../logger/logger'
-import { createBinaryResolverFromSettings, type BinaryResolver } from '../tools/binary-resolver'
+} from '@main/infrastructure/adb/adb.service'
+import { ScrcpyService } from '@main/infrastructure/scrcpy/scrcpy.service'
+import { logger } from '@main/infrastructure/logging/logger'
+import {
+  createBinaryResolverFromSettings,
+  type BinaryResolver
+} from '@main/infrastructure/binaries/binary-resolver'
+import type { ConfigurationService } from '@main/modules/configuration/configuration.service'
 import {
   allowAutoReconnectAfterManualConnect,
   canStartRuntimeRefresh,
   suspendAutoReconnectAfterManualDisconnect
-} from './headset-runtime.policy'
+} from './device-runtime.policy'
 
 const RUNTIME_POLL_MS = 20_000
 const AUTO_RECONNECT_DELAYS_MS = [10_000, 20_000, 40_000, 60_000]
@@ -60,7 +63,8 @@ export class HeadsetRuntimeManager {
 
   public constructor(
     private readonly emitRuntimeEvent: (event: DeviceRuntimeEvent) => void,
-    private readonly scrcpyService: ScrcpyService
+    private readonly scrcpyService: ScrcpyService,
+    private readonly configurationService: ConfigurationService
   ) {}
 
   public async initialize(): Promise<void> {
@@ -214,7 +218,7 @@ export class HeadsetRuntimeManager {
   }
 
   public async startStream(deviceId: string): Promise<ScrcpyStartResult> {
-    const state = await configurationService.load()
+    const state = await this.configurationService.load()
     const device = state.config.devices.find((item) => item.id === deviceId)
     if (!device) throw new Error(`Unknown device id: ${deviceId}`)
     const profile =
@@ -268,7 +272,7 @@ export class HeadsetRuntimeManager {
   }
 
   private async syncConfiguredDevices(): Promise<void> {
-    const state = await configurationService.load()
+    const state = await this.configurationService.load()
     const configuredIds = new Set(state.config.devices.map((device) => device.id))
     for (const device of state.config.devices) {
       this.ensureRuntime(device)
@@ -282,7 +286,7 @@ export class HeadsetRuntimeManager {
   }
 
   private async getDevice(deviceId: string): Promise<DeviceConfig> {
-    const state = await configurationService.load()
+    const state = await this.configurationService.load()
     const device = state.config.devices.find((item) => item.id === deviceId)
     if (!device) {
       throw new Error(`Unknown device id: ${deviceId}`)
@@ -351,7 +355,7 @@ export class HeadsetRuntimeManager {
 
   private async pollConfiguredDevices(): Promise<void> {
     await this.syncConfiguredDevices()
-    const state = await configurationService.load()
+    const state = await this.configurationService.load()
     const intervalMs = state.config.settings.runtimePollingIntervalSeconds * 1000
     const now = Date.now()
     await Promise.all(
@@ -367,7 +371,7 @@ export class HeadsetRuntimeManager {
 
   private async autoReconnectKnownDevices(): Promise<void> {
     await this.syncConfiguredDevices()
-    const state = await configurationService.load()
+    const state = await this.configurationService.load()
     if (!state.config.settings.autoReconnect) {
       return
     }
@@ -407,7 +411,7 @@ export class HeadsetRuntimeManager {
   }
 
   private async getBinaryResolver(): Promise<BinaryResolver> {
-    const state = await configurationService.load()
+    const state = await this.configurationService.load()
     return createBinaryResolverFromSettings(state.config.settings)
   }
 

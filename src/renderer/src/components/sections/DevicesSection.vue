@@ -172,19 +172,6 @@ const closeDiagnostics = (): void => {
       />
     </section>
 
-    <section class="devices-list">
-      <p class="section-label">{{ t('devices.adbDevices.title') }}</p>
-      <p v-if="headset.adbDevices.value.length === 0" class="muted-text">
-        {{ t('devices.adbDevices.empty') }}
-      </p>
-      <ul v-else>
-        <li v-for="device in headset.adbDevices.value" :key="device.serial">
-          <span>{{ device.serial }}</span>
-          <span>{{ device.rawState }}</span>
-        </li>
-      </ul>
-    </section>
-
     <DeviceFormModal
       v-if="isDeviceFormOpen"
       :devices="headset.configuredDevices.value"

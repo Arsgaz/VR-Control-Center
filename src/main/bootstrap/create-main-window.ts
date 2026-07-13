@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 import { app, BrowserWindow, shell } from 'electron'
-import { logger } from '../logger/logger'
+import { logger } from '@main/infrastructure/logging/logger'
 
 export const createMainWindow = (): BrowserWindow => {
   logger.info('Creating main window')

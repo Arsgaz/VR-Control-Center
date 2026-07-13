@@ -1,7 +1,7 @@
 import { access, copyFile, mkdir } from 'node:fs/promises'
 import { basename, dirname, join } from 'node:path'
 import { app } from 'electron'
-import { logger } from '../logger/logger'
+import { logger } from '@main/infrastructure/logging/logger'
 
 const LEGACY_APP_DIRECTORY_NAME = 'arena-control-center'
 const CONFIG_FILE_NAME = 'config.json'

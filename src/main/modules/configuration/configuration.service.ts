@@ -1,7 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { app } from 'electron'
-import { createDefaultConfig, resolveLanguageFromLocale } from '../../shared/config/default-config'
+import { createDefaultConfig, resolveLanguageFromLocale } from '@shared/config/default-config'
 import {
   isDeviceAddress,
   isDeviceConfigUpdate,
@@ -11,7 +11,7 @@ import {
   isNewStreamProfileConfig,
   isStreamProfileConfigUpdate,
   normalizeAppConfig
-} from '../../shared/config/config.validation'
+} from '@shared/config/config.validation'
 import type {
   AppConfig,
   AppLanguage,
@@ -22,8 +22,8 @@ import type {
   NewStreamProfileConfig,
   StreamProfileConfigUpdate,
   UserSettingsUpdate
-} from '../../shared/contracts/config.contracts'
-import { applyLoggerSettings, logger } from '../logger/logger'
+} from '@shared/contracts/config.contracts'
+import { applyLoggerSettings, logger } from '@main/infrastructure/logging/logger'
 
 const CONFIG_FILE_NAME = 'config.json'
 
@@ -489,5 +489,3 @@ export class ConfigurationService {
     }
   }
 }
-
-export const configurationService = new ConfigurationService()

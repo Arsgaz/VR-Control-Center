@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { logger } from '../logger/logger'
+import { logger } from '@main/infrastructure/logging/logger'
 
 export interface RunCommandOptions {
   timeoutMs: number

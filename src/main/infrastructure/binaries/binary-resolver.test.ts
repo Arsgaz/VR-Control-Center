@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createDefaultConfig } from '../../shared/config/default-config'
+import { createDefaultConfig } from '@shared/config/default-config'
 import { createBinaryResolverFromSettings } from './binary-resolver'
 
 describe('createBinaryResolverFromSettings', () => {
