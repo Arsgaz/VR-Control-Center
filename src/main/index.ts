@@ -1,9 +1,20 @@
 import { app, BrowserWindow } from 'electron'
 import { registerAppHandlers } from './ipc/app.handlers'
 import { registerHeadsetHandlers, stopScrcpyOnShutdown } from './ipc/headset.handlers'
+import { configureLogger, logger } from './logger/logger'
 import { createMainWindow } from './window/create-main-window'
 
 app.whenReady().then(() => {
+  const logInfo = configureLogger()
+  logger.info('Application starting', {
+    appName: 'VR Control Center',
+    version: app.getVersion(),
+    platform: process.platform,
+    arch: process.arch,
+    isPackaged: app.isPackaged,
+    logFile: logInfo.file
+  })
+
   if (process.platform === 'win32') {
     app.setAppUserModelId('com.arenacontrol.desktop')
   }
@@ -25,20 +36,24 @@ app.whenReady().then(() => {
   registerAppHandlers()
   registerHeadsetHandlers()
   createMainWindow()
+  logger.info('Application ready')
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
+      logger.info('Recreating main window after activate')
       createMainWindow()
     }
   })
 })
 
 app.on('before-quit', () => {
+  logger.info('Application before-quit; stopping child processes')
   stopScrcpyOnShutdown()
 })
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
+    logger.info('All windows closed; quitting application')
     app.quit()
   }
 })

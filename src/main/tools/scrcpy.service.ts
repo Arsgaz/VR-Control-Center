@@ -9,6 +9,7 @@ import type {
   ToolCheck
 } from '../../shared/contracts/headset.contracts'
 import { runCommand } from './process-runner'
+import { logger } from '../logger/logger'
 
 const SHORT_COMMAND_TIMEOUT_MS = 10_000
 
@@ -40,11 +41,18 @@ const errorToMessage = (error: unknown): string => {
 }
 
 export const checkScrcpy = async (): Promise<ToolCheck> => {
+  logger.info('Checking scrcpy availability')
   try {
     const result = await runCommand('scrcpy', ['--version'], { timeoutMs: SHORT_COMMAND_TIMEOUT_MS })
     const version = firstNonEmptyLine(result.stdout || result.stderr)
     const available = result.exitCode === 0
 
+    logger.info('scrcpy availability check completed', {
+      available,
+      version,
+      exitCode: result.exitCode,
+      stderr: result.stderr
+    })
     return {
       name: 'scrcpy',
       available,
@@ -54,6 +62,7 @@ export const checkScrcpy = async (): Promise<ToolCheck> => {
       stderr: result.stderr
     }
   } catch (error) {
+    logger.errorWithCause('scrcpy availability check failed', error)
     return {
       name: 'scrcpy',
       available: false,
@@ -77,6 +86,10 @@ export class ScrcpyService {
 
   public start(options: ScrcpyStartOptions): ScrcpyStartResult {
     if (this.child && !this.child.killed) {
+      logger.warn('scrcpy start rejected because a process is already running', {
+        currentPid: this.status.pid,
+        currentAddress: this.status.address
+      })
       return {
         ok: false,
         status: this.getStatus(),
@@ -86,6 +99,12 @@ export class ScrcpyService {
 
     const args = buildScrcpyArgs(options)
     const startedAt = new Date().toISOString()
+    logger.info('Starting scrcpy process', {
+      address: options.address,
+      args,
+      noAudio: options.noAudio,
+      hasCrop: Boolean(options.crop?.trim())
+    })
 
     try {
       const child = spawn('scrcpy', args, {
@@ -94,6 +113,10 @@ export class ScrcpyService {
       })
 
       this.child = child
+      logger.info('scrcpy process started', {
+        pid: child.pid ?? null,
+        address: options.address
+      })
       this.status = {
         state: 'running',
         running: true,
@@ -107,14 +130,22 @@ export class ScrcpyService {
       }
 
       child.stdout.on('data', (chunk: Buffer) => {
-        this.emitEvent('stdout', chunk.toString('utf8').trim() || 'scrcpy stdout')
+        const message = chunk.toString('utf8').trim() || 'scrcpy stdout'
+        logger.debug('scrcpy stdout', { pid: child.pid ?? null, message })
+        this.emitEvent('stdout', message)
       })
 
       child.stderr.on('data', (chunk: Buffer) => {
-        this.emitEvent('stderr', chunk.toString('utf8').trim() || 'scrcpy stderr')
+        const message = chunk.toString('utf8').trim() || 'scrcpy stderr'
+        logger.warn('scrcpy stderr', { pid: child.pid ?? null, message })
+        this.emitEvent('stderr', message)
       })
 
       child.on('error', (error) => {
+        logger.errorWithCause('scrcpy process emitted error', error, {
+          pid: child.pid ?? null,
+          address: options.address
+        })
         this.child = null
         this.status = {
           ...this.status,
@@ -143,6 +174,13 @@ export class ScrcpyService {
                 ? 'scrcpy exited'
                 : `scrcpy exited with code ${exitCode ?? 'unknown'}`
         }
+        logger.info(exitCode === 0 || wasStopping ? 'scrcpy process exited' : 'scrcpy process failed', {
+          pid: child.pid ?? null,
+          address: options.address,
+          exitCode,
+          signal,
+          wasStopping
+        })
         this.emitEvent('exit', this.status.message)
       })
 
@@ -154,6 +192,10 @@ export class ScrcpyService {
         message: 'scrcpy started'
       }
     } catch (error) {
+      logger.errorWithCause('Failed to spawn scrcpy process', error, {
+        address: options.address,
+        args
+      })
       this.child = null
       this.status = {
         ...emptyStatus(errorToMessage(error)),
@@ -171,6 +213,7 @@ export class ScrcpyService {
 
   public stop(): ScrcpyStopResult {
     if (!this.child || !this.status.running) {
+      logger.warn('scrcpy stop rejected because no process is running')
       return {
         ok: false,
         status: this.getStatus(),
@@ -178,6 +221,7 @@ export class ScrcpyService {
       }
     }
 
+    logger.info('Stopping scrcpy process', { pid: this.status.pid, address: this.status.address })
     this.status = {
       ...this.status,
       state: 'stopping',
@@ -195,6 +239,10 @@ export class ScrcpyService {
 
   public stopOnShutdown(): void {
     if (this.child && this.status.running) {
+      logger.info('Stopping scrcpy process during shutdown', {
+        pid: this.status.pid,
+        address: this.status.address
+      })
       this.child.kill()
     }
   }

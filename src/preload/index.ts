@@ -8,6 +8,7 @@ import {
 
 const arenaApi: ArenaApi = {
   getAppInfo: () => ipcRenderer.invoke(APP_IPC_CHANNELS.getAppInfo),
+  getTechnicalLogInfo: () => ipcRenderer.invoke(APP_IPC_CHANNELS.getTechnicalLogInfo),
   headset: {
     checkEnvironment: () => ipcRenderer.invoke(HEADSET_IPC_CHANNELS.checkEnvironment),
     listAdbDevices: () => ipcRenderer.invoke(HEADSET_IPC_CHANNELS.listAdbDevices),

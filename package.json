@@ -17,6 +17,7 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
+    "electron-log": "^5.4.3",
     "vue": "^3.5.22"
   },
   "devDependencies": {
@@ -38,7 +39,7 @@
   },
   "build": {
     "appId": "com.arenacontrol.desktop",
-    "productName": "Arena Control Center",
+    "productName": "VR Control Center",
     "directories": {
       "output": "dist"
     },

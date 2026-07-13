@@ -38,7 +38,7 @@ This checks the Electron main process, preload script, shared contracts, and Vue
 npm run test
 ```
 
-Current tests cover ADB device-list parsing and scrcpy argument construction.
+Current tests cover ADB device-list parsing, scrcpy argument construction, and user event-log model behavior.
 
 ## Production build
 
@@ -66,6 +66,8 @@ src/
 │   ├── ipc/
 │   │   ├── app.handlers.ts
 │   │   └── headset.handlers.ts
+│   ├── logger/
+│   │   └── logger.ts
 │   └── tools/
 │       ├── adb.service.ts
 │       ├── process-runner.ts
@@ -77,8 +79,18 @@ src/
 │   ├── index.html
 │   └── src/
 │       ├── assets/
+│       ├── composables/
+│       │   ├── event-log.model.ts
+│       │   ├── useEventLog.ts
+│       │   └── useHeadsetController.ts
 │       ├── components/
-│       │   └── HeadsetControl.vue
+│       │   ├── layout/
+│       │   │   ├── AppNavigation.vue
+│       │   │   └── UserEventLog.vue
+│       │   └── sections/
+│       │       ├── DevicesSection.vue
+│       │       ├── DiagnosticsSection.vue
+│       │       └── StreamProfilesSection.vue
 │       ├── App.vue
 │       ├── main.ts
 │       └── styles.css
@@ -95,6 +107,8 @@ src/
 
 - Electron, Vue 3, TypeScript, Vite, preload, and typed IPC are wired together.
 - The renderer has no direct Node.js access.
+- The window and package product name use `VR Control Center`; `appId` remains `com.arenacontrol.desktop` for compatibility.
+- The main process writes technical logs to Electron's standard logs directory and exposes the path in Diagnostics.
 - The first local workflow checks system `adb` and `scrcpy`, lists ADB devices, connects or disconnects one headset address, and starts or stops one scrcpy stream.
 - ADB and scrcpy binaries are not bundled yet.
 - Multi-device management, mock devices, remote control, and Arena Agent are not implemented yet.

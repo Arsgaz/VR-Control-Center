@@ -1,17 +1,32 @@
 <script setup lang="ts">
-import HeadsetControl from './components/HeadsetControl.vue'
+import { onUnmounted, ref } from 'vue'
+import AppNavigation from './components/layout/AppNavigation.vue'
+import UserEventLog from './components/layout/UserEventLog.vue'
+import DevicesSection from './components/sections/DevicesSection.vue'
+import DiagnosticsSection from './components/sections/DiagnosticsSection.vue'
+import StreamProfilesSection from './components/sections/StreamProfilesSection.vue'
+import { useHeadsetController } from './composables/useHeadsetController'
+
+type AppSection = 'devices' | 'profiles' | 'diagnostics'
+
+const activeSection = ref<AppSection>('devices')
+const headset = useHeadsetController()
+
+onUnmounted(() => {
+  headset.dispose()
+})
 </script>
 
 <template>
   <main class="app-shell">
-    <section class="intro-panel">
-      <div class="heading-group">
-        <p class="eyebrow">Local control mode</p>
-        <h1>Arena Control Center</h1>
-        <p class="subtitle">Single headset ADB and scrcpy workflow</p>
-      </div>
+    <AppNavigation :active-section="activeSection" @change="activeSection = $event" />
 
-      <HeadsetControl />
+    <section class="active-section" tabindex="-1">
+      <DevicesSection v-if="activeSection === 'devices'" />
+      <StreamProfilesSection v-else-if="activeSection === 'profiles'" />
+      <DiagnosticsSection v-else />
     </section>
+
+    <UserEventLog />
   </main>
 </template>
