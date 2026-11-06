@@ -1,3 +1,4 @@
+import { UsbConnectionService } from '@main/infrastructure/adb/usb-connection.service'
 import { ipcMain } from 'electron'
 import { HEADSET_IPC_CHANNELS } from '@shared/contracts/headset.contracts'
 import { checkAdb, listAdbDevices } from '@main/infrastructure/adb/adb.service'
@@ -24,6 +25,12 @@ export const registerDeviceHandlers = ({
   configurationService,
   runtimeManager
 }: DeviceHandlerDependencies): void => {
+  const usbConnection = new UsbConnectionService()
+  ipcMain.handle(HEADSET_IPC_CHANNELS.connectUsb, async (_, serial?: unknown) => {
+    const state = await configurationService.load()
+    return usbConnection.connect(createBinaryResolverFromSettings(state.config.settings), serial)
+  })
+
   ipcMain.handle(HEADSET_IPC_CHANNELS.checkEnvironment, async () => {
     try {
       logger.debug('IPC headset:check-environment started')
@@ -71,4 +78,7 @@ export const registerDeviceHandlers = ({
     logger.debug('IPC headset:refresh-runtime started', { deviceId: assertedDeviceId })
     return runtimeManager.refreshRuntime(assertedDeviceId)
   })
+  ipcMain.handle(HEADSET_IPC_CHANNELS.syncTime, (_, deviceId: string) =>
+    runtimeManager.syncTime(assertDeviceId(deviceId))
+  )
 }

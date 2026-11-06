@@ -1,7 +1,8 @@
 {
   "app": {
     "name": "VR Control Center",
-    "mode": "Local control mode"
+    "mode": "Local control mode",
+    "workspace": "VR arena control"
   },
   "actions": {
     "add": "Add",
@@ -25,7 +26,8 @@
     "reset": "Reset",
     "save": "Save",
     "start": "Start",
-    "stop": "Stop"
+    "stop": "Stop",
+    "saving": "Saving…"
   },
   "states": {
     "available": "Available",

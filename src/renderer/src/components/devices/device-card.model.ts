@@ -1,11 +1,7 @@
 import type { DeviceRuntimeState } from '../../../../shared/contracts/headset.contracts'
 
 export type DeviceOperation =
-  | 'connect'
-  | 'disconnect'
-  | 'refreshRuntime'
-  | 'startScrcpy'
-  | 'stopScrcpy'
+  'connect' | 'disconnect' | 'refreshRuntime' | 'startScrcpy' | 'stopScrcpy' | 'syncTime'
 
 export interface DeviceActionPresentation {
   label: string
@@ -75,18 +71,30 @@ export const getConnectionAction = (
   isAdbAvailable: boolean
 ): DeviceActionPresentation => {
   if (operation === 'connect') {
-    return { label: 'Connecting...', labelKey: 'common.actions.connecting', disabled: true, action: 'connect', tone: 'primary' }
+    return {
+      label: 'Connecting...',
+      labelKey: 'common.actions.connecting',
+      disabled: true,
+      action: 'connect',
+      tone: 'primary'
+    }
   }
 
   if (operation === 'disconnect') {
-    return { label: 'Disconnecting...', labelKey: 'common.actions.disconnecting', disabled: true, action: 'disconnect', tone: 'secondary' }
+    return {
+      label: 'Disconnecting...',
+      labelKey: 'common.actions.disconnecting',
+      disabled: true,
+      action: 'disconnect',
+      tone: 'secondary'
+    }
   }
 
   if (runtime.connectionState === 'connected') {
     return {
       label: 'Disconnect',
       labelKey: 'common.actions.disconnect',
-      disabled: !isAdbAvailable,
+      disabled: !isAdbAvailable || operation !== null,
       action: 'disconnect',
       tone: 'secondary'
     }
@@ -95,7 +103,7 @@ export const getConnectionAction = (
   return {
     label: 'Connect',
     labelKey: 'common.actions.connect',
-    disabled: !isAdbAvailable,
+    disabled: !isAdbAvailable || operation !== null,
     action: 'connect',
     tone: 'primary'
   }
@@ -105,22 +113,33 @@ export const getStreamAction = (
   runtime: Pick<DeviceRuntimeState, 'connectionState' | 'streamState'>,
   operation: DeviceOperation | null,
   isScrcpyAvailable: boolean,
-  isAnyStreamRunning: boolean,
   isThisStreamRunning: boolean
 ): DeviceActionPresentation => {
   if (operation === 'startScrcpy') {
-    return { label: 'Starting...', labelKey: 'devices.actions.starting', disabled: true, action: 'startStream', tone: 'primary' }
+    return {
+      label: 'Starting...',
+      labelKey: 'devices.actions.starting',
+      disabled: true,
+      action: 'startStream',
+      tone: 'primary'
+    }
   }
 
   if (operation === 'stopScrcpy') {
-    return { label: 'Stopping...', labelKey: 'devices.actions.stopping', disabled: true, action: 'stopStream', tone: 'danger' }
+    return {
+      label: 'Stopping...',
+      labelKey: 'devices.actions.stopping',
+      disabled: true,
+      action: 'stopStream',
+      tone: 'danger'
+    }
   }
 
   if (isThisStreamRunning || runtime.streamState === 'running') {
     return {
       label: 'Stop stream',
       labelKey: 'devices.actions.stopStream',
-      disabled: !isThisStreamRunning,
+      disabled: !isThisStreamRunning || operation !== null || runtime.streamState === 'stopping',
       action: 'stopStream',
       tone: 'danger'
     }
@@ -129,7 +148,12 @@ export const getStreamAction = (
   return {
     label: 'Start stream',
     labelKey: 'devices.actions.startStream',
-    disabled: !isScrcpyAvailable || isAnyStreamRunning || runtime.connectionState !== 'connected',
+    disabled:
+      !isScrcpyAvailable ||
+      operation !== null ||
+      runtime.streamState === 'starting' ||
+      runtime.streamState === 'stopping' ||
+      runtime.connectionState !== 'connected',
     action: 'startStream',
     tone: 'primary'
   }

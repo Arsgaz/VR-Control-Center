@@ -1,13 +1,16 @@
 <script setup lang="ts">
+import AppIcon from '../ui/AppIcon.vue'
+import type { IconName } from '../ui/icon-paths'
+import oneplaceLogo from '../../assets/branding/oneplace-logo.svg'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-type AppSection = 'devices' | 'profiles' | 'diagnostics'
+type AppSection = 'devices' | 'teamGames' | 'profiles' | 'diagnostics'
 
 interface NavigationItem {
   id: AppSection
   label: string
-  description: string
+  icon: IconName
 }
 
 defineProps<{
@@ -23,18 +26,18 @@ const { t } = useI18n()
 const items = computed<NavigationItem[]>(() => [
   {
     id: 'devices',
-    label: t('devices.navigation.title'),
-    description: t('devices.navigation.description')
+    icon: 'headset',
+    label: t('devices.navigation.title')
+  },
+  {
+    id: 'teamGames',
+    icon: 'monitor',
+    label: t('teamGames.title')
   },
   {
     id: 'profiles',
-    label: t('settings.navigation.profilesTitle'),
-    description: t('settings.navigation.profilesDescription')
-  },
-  {
-    id: 'diagnostics',
-    label: t('settings.navigation.diagnosticsTitle'),
-    description: t('settings.navigation.diagnosticsDescription')
+    icon: 'sliders',
+    label: t('settings.navigation.profilesTitle')
   }
 ])
 </script>
@@ -42,22 +45,45 @@ const items = computed<NavigationItem[]>(() => [
 <template>
   <header class="app-navigation">
     <div class="brand-block">
-      <p class="eyebrow">{{ t('common.app.mode') }}</p>
-      <h1>{{ t('common.app.name') }}</h1>
+      <img
+        class="brand-logo"
+        :src="oneplaceLogo"
+        alt="OnePlace — VR-арена"
+        width="82"
+        height="49"
+      />
+      <div class="brand-copy">
+        <span class="brand-caption">{{ t('common.app.workspace') }}</span>
+        <h1>{{ t('common.app.name') }}</h1>
+      </div>
     </div>
 
-    <nav :aria-label="t('common.app.name')">
+    <div class="app-navigation-controls">
+      <nav :aria-label="t('common.app.name')">
+        <button
+          v-for="item in items"
+          :key="item.id"
+          type="button"
+          class="nav-button"
+          :class="{ active: activeSection === item.id }"
+          :aria-current="activeSection === item.id ? 'page' : undefined"
+          @click="emit('change', item.id)"
+        >
+          <AppIcon :name="item.icon" :size="17" />
+          <span>{{ item.label }}</span>
+        </button>
+      </nav>
       <button
-        v-for="item in items"
-        :key="item.id"
         type="button"
-        class="nav-button"
-        :class="{ active: activeSection === item.id }"
-        @click="emit('change', item.id)"
+        class="settings-navigation-button"
+        :class="{ active: activeSection === 'diagnostics' }"
+        :aria-label="t('settings.navigation.diagnosticsTitle')"
+        :title="t('settings.navigation.diagnosticsTitle')"
+        :aria-current="activeSection === 'diagnostics' ? 'page' : undefined"
+        @click="emit('change', 'diagnostics')"
       >
-        <span>{{ item.label }}</span>
-        <small>{{ item.description }}</small>
+        <AppIcon name="settings" :size="20" />
       </button>
-    </nav>
+    </div>
   </header>
 </template>

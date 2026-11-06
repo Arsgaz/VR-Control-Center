@@ -1,6 +1,6 @@
 {
   "delete": {
-    "confirm": "Delete {name}? Runtime state will be cleared."
+    "confirm": "Delete {name}? Its stream will be stopped."
   },
   "validation": {
     "deviceNameRequired": "Device name is required.",

@@ -32,7 +32,9 @@ const getEventValue = (event: Event): string | null => {
 
 const getEventChecked = (event: Event): boolean | null => {
   const target = event.target
-  return target && 'checked' in target && typeof target.checked === 'boolean' ? target.checked : null
+  return target && 'checked' in target && typeof target.checked === 'boolean'
+    ? target.checked
+    : null
 }
 
 const updateLanguage = (event: Event): void => {
@@ -40,7 +42,10 @@ const updateLanguage = (event: Event): void => {
   if (value) void appConfig.updateLanguage(value as AppLanguage)
 }
 
-const updateBoolean = (key: 'autoReconnect' | 'launchAtStartup' | 'verboseLogging', event: Event): void => {
+const updateBoolean = (
+  key: 'autoReconnect' | 'launchAtStartup' | 'verboseLogging',
+  event: Event
+): void => {
   const checked = getEventChecked(event)
   if (checked !== null) void updateSettings({ [key]: checked })
 }
@@ -113,7 +118,10 @@ const toolPath = (tool: ToolBinaryKind): string => {
   const source = tool === 'adb' ? settings.value.adbSource : settings.value.scrcpySource
   const path = tool === 'adb' ? settings.value.adbPath : settings.value.scrcpyPath
   if (source === 'custom') return path || t('settings.states.unavailable')
-  if (source === 'bundled') return t('settings.states.notImplemented')
+  const bundled = headset.appInfo.value?.bundledToolsDirectory
+  if (source === 'bundled' || (source === 'auto' && bundled)) {
+    return bundled ? `${bundled}\\${tool}.exe` : t('settings.states.unavailable')
+  }
   return tool
 }
 </script>
@@ -121,7 +129,6 @@ const toolPath = (tool: ToolBinaryKind): string => {
 <template>
   <section class="section-content" aria-labelledby="settings-title">
     <div class="section-heading">
-      <p class="section-label">{{ t('settings.page.label') }}</p>
       <h2 id="settings-title">{{ t('settings.page.title') }}</h2>
       <p class="muted-text">{{ t('settings.page.description') }}</p>
     </div>
@@ -129,7 +136,6 @@ const toolPath = (tool: ToolBinaryKind): string => {
     <section class="settings-section-card info-card">
       <div class="card-header">
         <div>
-          <p class="section-label">{{ t('settings.sections.general') }}</p>
           <h3>{{ t('settings.sections.general') }}</h3>
         </div>
       </div>
@@ -151,7 +157,7 @@ const toolPath = (tool: ToolBinaryKind): string => {
 
         <label class="settings-row">
           <span>
-            <strong>{{ t('settings.fields.autoReconnect') }} (`autoReconnect`)</strong>
+            <strong>{{ t('settings.fields.autoReconnect') }}</strong>
             <small>{{ t('settings.descriptions.autoReconnect') }}</small>
           </span>
           <input
@@ -161,9 +167,9 @@ const toolPath = (tool: ToolBinaryKind): string => {
           />
         </label>
 
-        <label class="settings-row disabled-setting">
+        <label v-if="settings?.launchAtStartup" class="settings-row disabled-setting">
           <span>
-            <strong>{{ t('settings.fields.launchAtStartup') }} (`launchAtStartup`)</strong>
+            <strong>{{ t('settings.fields.launchAtStartup') }}</strong>
             <small>{{ t('settings.descriptions.launchAtStartup') }}</small>
             <small>{{ t('settings.descriptions.launchAtStartupUnavailable') }}</small>
           </span>
@@ -177,22 +183,20 @@ const toolPath = (tool: ToolBinaryKind): string => {
 
         <label class="settings-row">
           <span>
-            <strong>{{ t('settings.fields.closeBehavior') }} (`closeBehavior`)</strong>
+            <strong>{{ t('settings.fields.closeBehavior') }}</strong>
             <small>{{ t('settings.descriptions.closeBehavior') }}</small>
           </span>
           <select :value="settings?.closeBehavior ?? 'quit'" @change="updateCloseBehavior">
             <option value="quit">{{ t('settings.options.quit') }}</option>
             <option value="ask">{{ t('settings.options.ask') }}</option>
-            <option value="minimizeToTray" disabled>
-              {{ t('settings.options.minimizeToTray') }} - {{ t('settings.descriptions.trayUnavailable') }}
-            </option>
+            <option value="minimizeToTray">{{ t('settings.options.minimizeToTray') }}</option>
           </select>
         </label>
 
         <label class="settings-row">
           <span>
             <strong>
-              {{ t('settings.fields.runtimePollingInterval') }} (`runtimePollingIntervalSeconds`)
+              {{ t('settings.fields.runtimePollingInterval') }}
             </strong>
             <small>{{ t('settings.descriptions.runtimePollingInterval') }}</small>
           </span>
@@ -212,10 +216,14 @@ const toolPath = (tool: ToolBinaryKind): string => {
     <section class="settings-section-card info-card">
       <div class="card-header">
         <div>
-          <p class="section-label">{{ t('settings.sections.tools') }}</p>
           <h3>ADB / scrcpy</h3>
         </div>
-        <button type="button" class="refresh-button" :disabled="headset.isBusy.value" @click="headset.checkEnvironment">
+        <button
+          type="button"
+          class="refresh-button"
+          :disabled="headset.isBusy.value"
+          @click="headset.checkEnvironment"
+        >
           {{
             headset.operation.value === 'environment'
               ? t('settings.tools.checking')
@@ -225,15 +233,16 @@ const toolPath = (tool: ToolBinaryKind): string => {
       </div>
 
       <div class="tool-settings-grid">
-        <article v-for="tool in (['adb', 'scrcpy'] as const)" :key="tool" class="tool-settings-card">
+        <article v-for="tool in ['adb', 'scrcpy'] as const" :key="tool" class="tool-settings-card">
           <div class="card-header">
             <div>
-              <p class="section-label">{{ tool }}</p>
               <h3>{{ tool }}</h3>
             </div>
             <span
               class="status-pill"
-              :class="toolAvailable(tool) === true ? 'ok' : toolAvailable(tool) === false ? 'bad' : ''"
+              :class="
+                toolAvailable(tool) === true ? 'ok' : toolAvailable(tool) === false ? 'bad' : ''
+              "
             >
               {{
                 toolAvailable(tool) === true
@@ -259,24 +268,37 @@ const toolPath = (tool: ToolBinaryKind): string => {
           <label class="settings-row compact-row">
             <span>
               <strong>
-                {{ tool === 'adb' ? t('settings.fields.adbSource') : t('settings.fields.scrcpySource') }}
+                {{
+                  tool === 'adb'
+                    ? t('settings.fields.adbSource')
+                    : t('settings.fields.scrcpySource')
+                }}
               </strong>
-              <small>{{ t('settings.descriptions.bundledUnavailable') }}</small>
+              <small>{{ t('settings.descriptions.toolSource') }}</small>
             </span>
             <select
-              :value="tool === 'adb' ? settings?.adbSource ?? 'system' : settings?.scrcpySource ?? 'system'"
+              :value="
+                tool === 'adb'
+                  ? (settings?.adbSource ?? 'auto')
+                  : (settings?.scrcpySource ?? 'auto')
+              "
               @change="updateToolSource(tool, $event)"
             >
+              <option value="auto">{{ t('settings.options.auto') }}</option>
               <option value="system">{{ t('settings.options.system') }}</option>
               <option value="custom">{{ t('settings.options.custom') }}</option>
-              <option value="bundled" disabled>{{ t('settings.options.bundled') }}</option>
+              <option value="bundled" :disabled="!headset.appInfo.value?.bundledToolsDirectory">
+                {{ t('settings.options.bundled') }}
+              </option>
             </select>
           </label>
 
           <div class="settings-row compact-row">
             <span>
               <strong>
-                {{ tool === 'adb' ? t('settings.fields.adbPath') : t('settings.fields.scrcpyPath') }}
+                {{
+                  tool === 'adb' ? t('settings.fields.adbPath') : t('settings.fields.scrcpyPath')
+                }}
               </strong>
               <small>{{ t('settings.descriptions.customPath') }}</small>
             </span>
@@ -291,7 +313,6 @@ const toolPath = (tool: ToolBinaryKind): string => {
     <section class="settings-section-card info-card">
       <div class="card-header">
         <div>
-          <p class="section-label">{{ t('settings.sections.logging') }}</p>
           <h3>{{ t('settings.sections.logging') }}</h3>
         </div>
       </div>
@@ -299,7 +320,7 @@ const toolPath = (tool: ToolBinaryKind): string => {
       <div class="settings-list">
         <label class="settings-row">
           <span>
-            <strong>{{ t('settings.fields.logLevel') }} (`logLevel`)</strong>
+            <strong>{{ t('settings.fields.logLevel') }}</strong>
           </span>
           <select :value="settings?.logLevel ?? 'info'" @change="updateLogLevel">
             <option value="error">{{ t('settings.options.error') }}</option>
@@ -311,7 +332,7 @@ const toolPath = (tool: ToolBinaryKind): string => {
 
         <label class="settings-row">
           <span>
-            <strong>{{ t('settings.fields.verboseLogging') }} (`verboseLogging`)</strong>
+            <strong>{{ t('settings.fields.verboseLogging') }}</strong>
             <small>{{ t('settings.descriptions.verboseLogging') }}</small>
           </span>
           <input
@@ -346,7 +367,6 @@ const toolPath = (tool: ToolBinaryKind): string => {
     <section class="settings-section-card info-card">
       <div class="card-header">
         <div>
-          <p class="section-label">{{ t('settings.sections.runtime') }}</p>
           <h3>{{ t('settings.sections.runtime') }}</h3>
         </div>
       </div>
@@ -390,7 +410,6 @@ const toolPath = (tool: ToolBinaryKind): string => {
     <section class="settings-section-card danger-zone-card info-card">
       <div class="card-header">
         <div>
-          <p class="section-label">{{ t('settings.sections.danger') }}</p>
           <h3>{{ t('settings.danger.resetTitle') }}</h3>
           <p class="muted-text">{{ t('settings.danger.resetDescription') }}</p>
         </div>

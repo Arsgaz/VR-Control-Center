@@ -1,4 +1,6 @@
+import type { SteamSyncSummary } from '../../../shared/contracts/team-games.contracts'
 import { computed, ref } from 'vue'
+import type { TeamGameConfig } from '../../../shared/contracts/team-games.contracts'
 import { createDefaultConfig } from '../../../shared/config/default-config'
 import { setI18nLanguage, translate } from '../i18n'
 import type {
@@ -209,6 +211,25 @@ export const useAppConfig = () => {
     addStreamProfile,
     updateStreamProfile,
     deleteStreamProfile,
-    resetConfig
+    resetConfig,
+    syncSteam: async (chooseDirectory = false): Promise<SteamSyncSummary | null> => {
+      let summary: SteamSyncSummary | null = null
+      const saved = await runConfigOperation(async () => {
+        const result = await window.vrControl.teamGames.syncSteam(chooseDirectory)
+        if (result.ok) summary = result.summary ?? null
+        return result
+      }, translate('teamGames.errors.steamSync'))
+      return saved ? summary : null
+    },
+    saveTeamGame: (game: TeamGameConfig) =>
+      runConfigOperation(
+        () => window.vrControl.teamGames.save(game),
+        translate('teamGames.errors.save')
+      ),
+    deleteTeamGame: (id: string) =>
+      runConfigOperation(
+        () => window.vrControl.teamGames.remove(id),
+        translate('teamGames.errors.remove')
+      )
   }
 }

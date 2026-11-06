@@ -1,10 +1,10 @@
 {
   "title": {
     "label": "Operator log",
-    "expanded": "User event journal",
-    "collapsed": "Journal ({count})"
+    "expanded": "Event log",
+    "collapsed": "Activity"
   },
-  "empty": "No user events yet.",
+  "empty": "No activity yet",
   "device": "Device: {id}",
   "events": {
     "configurationReset": "Configuration reset to defaults.",
@@ -39,5 +39,12 @@
     "disconnectTroubleshooting": "Check ADB state and try again.",
     "streamStartTroubleshooting": "Check scrcpy, ADB connection and launch parameters.",
     "streamStopTroubleshooting": "Check scrcpy process state."
+  },
+  "errorCount": "Errors: {count}",
+  "levels": {
+    "info": "Info",
+    "success": "Done",
+    "warning": "Warning",
+    "error": "Error"
   }
 }

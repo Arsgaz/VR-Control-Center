@@ -10,11 +10,11 @@ import {
 const LOG_LIMIT = 80
 
 const entries = ref<UserEventEntry[]>([])
-const isCollapsed = ref(false)
+const isCollapsed = ref(true)
 let nextId = 1
 
 export const useEventLog = () => {
-  const visibleEntries = computed(() => entries.value.slice(0, isCollapsed.value ? 0 : 8))
+  const visibleEntries = computed(() => entries.value.slice(0, isCollapsed.value ? 0 : LOG_LIMIT))
 
   const addEvent = (input: UserEventInput): void => {
     const entry = createUserEventEntry(input, nextId)

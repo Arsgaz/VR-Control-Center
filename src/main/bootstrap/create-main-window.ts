@@ -1,3 +1,4 @@
+import { brandingPath } from '@main/infrastructure/branding/branding'
 import { join } from 'node:path'
 import { app, BrowserWindow, shell } from 'electron'
 import { logger } from '@main/infrastructure/logging/logger'
@@ -10,6 +11,10 @@ export const createMainWindow = (): BrowserWindow => {
     minWidth: 900,
     minHeight: 600,
     title: 'VR Control Center',
+    icon: brandingPath('icon.png'),
+    backgroundColor: '#060811',
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    ...(process.platform === 'darwin' ? { trafficLightPosition: { x: 18, y: 28 } } : {}),
     show: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -18,6 +23,10 @@ export const createMainWindow = (): BrowserWindow => {
       sandbox: true
     }
   })
+
+  if (process.platform === 'win32') {
+    mainWindow.setMenu(null)
+  }
 
   mainWindow.once('ready-to-show', () => {
     logger.debug('Main window ready to show')

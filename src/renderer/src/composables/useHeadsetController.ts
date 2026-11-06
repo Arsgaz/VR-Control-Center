@@ -10,6 +10,7 @@ import type {
   AdbDevice,
   DeviceRuntimeEvent,
   DeviceRuntimeState,
+  DeviceTimeSyncResult,
   EnvironmentCheck,
   ScrcpyProcessEvent,
   ScrcpyStatus
@@ -20,7 +21,8 @@ import { useAppConfig } from './useAppConfig'
 import { useEventLog } from './useEventLog'
 
 type GlobalOperation = 'environment' | 'devices' | null
-export type DeviceOperation = 'connect' | 'disconnect' | 'refreshRuntime' | 'startScrcpy' | 'stopScrcpy'
+export type DeviceOperation =
+  'connect' | 'disconnect' | 'refreshRuntime' | 'startScrcpy' | 'stopScrcpy' | 'syncTime'
 
 const createDeviceRuntime = (device: Pick<DeviceConfig, 'id' | 'address'>): DeviceRuntimeState => ({
   deviceId: device.id,
@@ -53,6 +55,7 @@ const operation = ref<GlobalOperation>(null)
 const deviceOperations = ref<Record<string, DeviceOperation | null>>({})
 const deviceRuntimeById = ref<Record<string, DeviceRuntimeState>>({})
 const scrcpyStatusByDeviceId = ref<Record<string, ScrcpyStatus>>({})
+const timeSyncResults = ref<Record<string, DeviceTimeSyncResult | null>>({})
 let isInitialized = false
 let unsubscribeScrcpy: (() => void) | null = null
 let unsubscribeRuntime: (() => void) | null = null
@@ -74,9 +77,21 @@ const setDeviceOperation = async (
   currentOperation: DeviceOperation,
   task: () => Promise<void>
 ) => {
+  if (deviceOperations.value[deviceId]) return
   deviceOperations.value = { ...deviceOperations.value, [deviceId]: currentOperation }
   try {
     await task()
+  } catch (error) {
+    console.error(`Device operation ${currentOperation} failed:`, error)
+    const operation =
+      currentOperation === 'startScrcpy'
+        ? 'startStream'
+        : currentOperation === 'stopScrcpy'
+          ? 'stopStream'
+          : currentOperation === 'refreshRuntime'
+            ? 'devices'
+            : currentOperation
+    useEventLog().addEvent({ ...toUserFacingError(operation), deviceId })
   } finally {
     deviceOperations.value = { ...deviceOperations.value, [deviceId]: null }
   }
@@ -96,6 +111,8 @@ const ensureDeviceRuntime = (device: Pick<DeviceConfig, 'id' | 'address'>): Devi
 }
 
 const applyRuntime = (runtime: DeviceRuntimeState): void => {
+  const device = useAppConfig().config.value?.devices.find((item) => item.id === runtime.deviceId)
+  if (!device || device.address !== runtime.deviceAddress) return
   deviceRuntimeById.value = {
     ...deviceRuntimeById.value,
     [runtime.deviceId]: runtime
@@ -103,6 +120,7 @@ const applyRuntime = (runtime: DeviceRuntimeState): void => {
 }
 
 const removeDeviceRuntime = (deviceId: string): void => {
+  delete timeSyncResults.value[deviceId]
   deviceRuntimeById.value = Object.fromEntries(
     Object.entries(deviceRuntimeById.value).filter(([id]) => id !== deviceId)
   )
@@ -177,6 +195,7 @@ export const useHeadsetController = () => {
   const updateDevice = async (id: string, changes: DeviceConfigUpdate): Promise<boolean> => {
     const saved = await appConfig.updateDevice(id, changes)
     if (saved) {
+      delete timeSyncResults.value[id]
       const device = configuredDevices.value.find((item) => item.id === id)
       addEvent({
         level: 'success',
@@ -211,6 +230,7 @@ export const useHeadsetController = () => {
       deviceRuntimeById.value = {}
       deviceOperations.value = {}
       scrcpyStatusByDeviceId.value = {}
+      timeSyncResults.value = {}
     }
     return saved
   }
@@ -278,6 +298,27 @@ export const useHeadsetController = () => {
     })
   }
 
+  const syncTime = async (device: DeviceConfig): Promise<void> => {
+    await setDeviceOperation(device.id, 'syncTime', async () => {
+      timeSyncResults.value[device.id] = null
+      let result: DeviceTimeSyncResult
+      try {
+        result = await window.vrControl.headset.syncTime(device.id)
+      } catch {
+        result = { ok: false, code: 'COMMAND_FAILED' }
+      }
+      const current = configuredDevices.value.find((item) => item.id === device.id)
+      if (!current || current.address !== device.address) return
+      timeSyncResults.value[device.id] = result
+      addEvent({
+        level: result.ok ? 'success' : 'error',
+        message: `${getDeviceLogName(device)}: ${translate(result.ok ? 'devices.timeSync.success' : `devices.timeSync.errors.${result.code}`)}`,
+        description: result.ok ? new Date(result.computerTimeMs).toISOString() : undefined,
+        deviceId: device.id
+      })
+    })
+  }
+
   const connectDevice = async (device: DeviceConfig): Promise<void> => {
     if (!isAdbAvailable.value) {
       addEvent({
@@ -339,7 +380,9 @@ export const useHeadsetController = () => {
     if (getRuntimeForDevice(device.id).connectionState !== 'connected') {
       addEvent({
         level: 'warning',
-        message: translate('logger.events.deviceConnectionFailed', { name: getDeviceLogName(device) }),
+        message: translate('logger.events.deviceConnectionFailed', {
+          name: getDeviceLogName(device)
+        }),
         description: translate('logger.events.connectBeforeStream'),
         deviceId: device.id
       })
@@ -376,7 +419,12 @@ export const useHeadsetController = () => {
 
   const onScrcpyEvent = (event: ScrcpyProcessEvent): void => {
     if (!event.deviceId) return
-    scrcpyStatusByDeviceId.value = { ...scrcpyStatusByDeviceId.value, [event.deviceId]: event.status }
+    const configuredDevice = configuredDevices.value.find((device) => device.id === event.deviceId)
+    if (!configuredDevice || configuredDevice.address !== event.status.address) return
+    scrcpyStatusByDeviceId.value = {
+      ...scrcpyStatusByDeviceId.value,
+      [event.deviceId]: event.status
+    }
     if (event.type === 'exit' || event.type === 'error') {
       const device = configuredDevices.value.find((item) => item.id === event.deviceId)
       addEvent({
@@ -453,6 +501,8 @@ export const useHeadsetController = () => {
     checkEnvironment,
     refreshDevices,
     refreshRuntime,
+    syncTime,
+    timeSyncResults,
     getRuntimeForDevice,
     getOperationForDevice,
     getStreamProfileForDevice,

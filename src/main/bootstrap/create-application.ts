@@ -1,9 +1,6 @@
+import { applyApplicationBranding } from '@main/infrastructure/branding/branding'
 import { app, BrowserWindow } from 'electron'
-import {
-  applyLoggerSettings,
-  configureLogger,
-  logger
-} from '@main/infrastructure/logging/logger'
+import { applyLoggerSettings, configureLogger, logger } from '@main/infrastructure/logging/logger'
 import { migrateLegacyApplicationData } from '@main/migrations/app-name-migration'
 import { ConfigurationService } from '@main/modules/configuration/configuration.service'
 import { HeadsetRuntimeManager } from '@main/modules/devices/device-runtime.manager'
@@ -24,6 +21,7 @@ const broadcastRuntimeEvent = (event: DeviceRuntimeEvent): void => {
 }
 
 export const createApplication = async (): Promise<void> => {
+  applyApplicationBranding()
   const logInfo = configureLogger()
   logger.info('Application starting', {
     appName: 'VR Control Center',
@@ -37,10 +35,14 @@ export const createApplication = async (): Promise<void> => {
   const configurationService = new ConfigurationService()
 
   const broadcastScrcpyEvent = (event: ScrcpyProcessEvent): void => {
+    // Output is already written to technical logs; it does not change UI state.
+    if (event.type === 'stdout' || event.type === 'stderr') return
     for (const window of BrowserWindow.getAllWindows()) {
       window.webContents.send(HEADSET_IPC_CHANNELS.scrcpyEvent, event)
     }
-    void runtimeManager.handleScrcpyEvent(event)
+    void runtimeManager.handleScrcpyEvent(event).catch((error) => {
+      logger.errorWithCause('Failed to handle scrcpy event', error)
+    })
   }
 
   const scrcpyService = new ScrcpyService(broadcastScrcpyEvent)
@@ -52,7 +54,10 @@ export const createApplication = async (): Promise<void> => {
 
   await migrateLegacyApplicationData()
   const configState = await configurationService.load()
-  applyLoggerSettings(configState.config.settings.logLevel, configState.config.settings.verboseLogging)
+  applyLoggerSettings(
+    configState.config.settings.logLevel,
+    configState.config.settings.verboseLogging
+  )
 
   registerIpc({
     configurationService,
@@ -61,7 +66,8 @@ export const createApplication = async (): Promise<void> => {
   })
   registerApplicationLifecycle({
     runtimeManager,
-    scrcpyService
+    scrcpyService,
+    configurationService
   })
 
   await runtimeManager.initialize()

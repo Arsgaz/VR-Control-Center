@@ -4,6 +4,8 @@ export const HEADSET_IPC_CHANNELS = {
   connectDevice: 'headset:connect-device',
   disconnectDevice: 'headset:disconnect-device',
   refreshRuntime: 'headset:refresh-runtime',
+  syncTime: 'headset:sync-time',
+  connectUsb: 'headset:connect-usb',
   startScrcpy: 'headset:start-scrcpy',
   stopScrcpy: 'headset:stop-scrcpy',
   getScrcpyStatus: 'headset:get-scrcpy-status',
@@ -30,6 +32,7 @@ export interface EnvironmentCheck {
 export type AdbDeviceState = 'device' | 'offline' | 'unauthorized' | 'unknown'
 
 export interface AdbDevice {
+  model?: string
   serial: string
   state: AdbDeviceState
   rawState: string
@@ -94,12 +97,7 @@ export interface ScrcpyProcessEvent {
 }
 
 export type DeviceConnectionState =
-  | 'unknown'
-  | 'connected'
-  | 'disconnected'
-  | 'offline'
-  | 'unauthorized'
-  | 'error'
+  'unknown' | 'connected' | 'disconnected' | 'offline' | 'unauthorized' | 'error'
 
 export type BatteryStatus = 'unknown' | 'charging' | 'discharging' | 'not-charging' | 'full' | null
 
@@ -132,6 +130,25 @@ export interface DeviceRuntimeResult {
   message: string
 }
 
+export type DeviceTimeSyncError =
+  | 'DEVICE_NOT_FOUND'
+  | 'NOT_CONNECTED'
+  | 'PERMISSION_DENIED'
+  | 'SET_FAILED'
+  | 'VERIFY_FAILED'
+  | 'COMMAND_FAILED'
+  | 'SUPERSEDED'
+
+export type DeviceTimeSyncResult =
+  | {
+      ok: true
+      address: string
+      computerTimeMs: number
+      deviceTimeMs: number
+      differenceMs: number
+    }
+  | { ok: false; code: DeviceTimeSyncError }
+
 export interface DeviceRuntimeEvent {
   type: 'runtime' | 'connection' | 'stream'
   deviceId: string
@@ -141,14 +158,31 @@ export interface DeviceRuntimeEvent {
 }
 
 export interface HeadsetApi {
+  connectUsb: (serial?: string) => Promise<UsbConnectionResult>
   checkEnvironment: () => Promise<EnvironmentCheck>
   listAdbDevices: () => Promise<AdbDevicesResult>
   connectDevice: (deviceId: string) => Promise<DeviceRuntimeResult>
   disconnectDevice: (deviceId: string) => Promise<DeviceRuntimeResult>
   refreshRuntime: (deviceId: string) => Promise<DeviceRuntimeResult>
+  syncTime: (deviceId: string) => Promise<DeviceTimeSyncResult>
   startScrcpy: (deviceId: string) => Promise<ScrcpyStartResult>
   stopScrcpy: (deviceId: string) => Promise<ScrcpyStopResult>
   getScrcpyStatus: (deviceId: string) => Promise<ScrcpyStatus>
   onScrcpyEvent: (callback: (event: ScrcpyProcessEvent) => void) => () => void
   onRuntimeEvent: (callback: (event: DeviceRuntimeEvent) => void) => () => void
 }
+
+export type UsbConnectionError =
+  | 'BUSY'
+  | 'NO_USB'
+  | 'UNAUTHORIZED'
+  | 'OFFLINE'
+  | 'DEVICE_CHANGED'
+  | 'NO_WIFI'
+  | 'TCPIP_FAILED'
+  | 'CONNECT_FAILED'
+  | 'COMMAND_FAILED'
+export type UsbConnectionResult =
+  | { status: 'select'; devices: AdbDevice[] }
+  | { status: 'connected'; address: string; name: string }
+  | { status: 'error'; code: UsbConnectionError }
