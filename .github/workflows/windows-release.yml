@@ -68,7 +68,7 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            echo "Release already exists; refusing to overwrite it."
-            exit 1
+            echo "Release already exists; keeping its prepared artifacts unchanged."
+            exit 0
           fi
           gh release create "$RELEASE_TAG" dist/* --verify-tag --draft --title "VR Control Center $RELEASE_TAG — Windows x64" --notes-file docs/releases/windows.md
