@@ -4,8 +4,8 @@ OnePlace desktop control center for VR headsets, streams and arena games.
 
 ## Windows release
 
-Install `VR Control Center-0.2.0-win-x64-setup.exe`, or extract the complete
-`VR Control Center-0.2.0-win-x64.zip` and launch `VR Control Center.exe`.
+Install `VR-Control-Center-0.2.0-win-x64-setup.exe`, or extract the complete
+`VR-Control-Center-0.2.0-win-x64.zip` and launch `VR Control Center.exe`.
 The Windows release includes ADB 37.0.1, scrcpy 5.0.1, matching scrcpy-server,
 USB/SDL/FFmpeg/libusb DLLs, third-party notices and operator instructions.
 Node.js, npm, SideQuest and separately installed ADB/scrcpy are not required.

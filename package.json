@@ -64,7 +64,7 @@
         "zip"
       ],
       "icon": "resources/branding/icon.ico",
-      "artifactName": "${productName}-${version}-win-${arch}.${ext}",
+      "artifactName": "VR-Control-Center-${version}-win-${arch}.${ext}",
       "extraResources": [
         {
           "from": "resources/tools/win32-x64",
@@ -99,7 +99,7 @@
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
-      "artifactName": "${productName}-${version}-win-${arch}-setup.${ext}",
+      "artifactName": "VR-Control-Center-${version}-win-${arch}-setup.${ext}",
       "createDesktopShortcut": true
     }
   },
