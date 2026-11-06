@@ -92,9 +92,11 @@ version, download URL, SHA-256 and required files are pinned in
 An already-downloaded official ZIP can be supplied with
 `node scripts/prepare-windows-tools.mjs --archive PATH_TO_ZIP`.
 
-Pull requests to `main` build and upload a complete `windows-x64` artifact. Tags
-matching the package version (`v0.2.0`) also prepare a draft GitHub release.
-The workflow does not publish a release automatically. Builds are unsigned.
+Pull requests to `main` build and upload a complete `windows-x64` artifact. For
+same-repository `release/*` branches, CI also attaches these files to a draft
+GitHub release. Tags matching the package version (`v0.2.0`) prepare a draft too.
+Published releases are kept unchanged. The workflow does not publish a release
+automatically. Builds are unsigned.
 
 ## Project structure
 

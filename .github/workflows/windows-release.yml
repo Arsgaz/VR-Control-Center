@@ -51,13 +51,19 @@ jobs:
           compression-level: 0
 
   draft-release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: >-
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'release/'))
     needs: windows
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/download-artifact@v4
         with:
           name: windows-x64
@@ -65,10 +71,16 @@ jobs:
       - name: Prepare draft release
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TARGET: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
+          RELEASE_TAG="v$(node -p "require('./package.json').version")"
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            echo "Release already exists; keeping its prepared artifacts unchanged."
-            exit 0
+            if [ "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" != "true" ]; then
+              echo "Published release already exists; keeping it unchanged."
+              exit 0
+            fi
+            gh release edit "$RELEASE_TAG" --target "$RELEASE_TARGET" --title "VR Control Center $RELEASE_TAG — Windows x64" --notes-file docs/releases/windows.md
+          else
+            gh release create "$RELEASE_TAG" --target "$RELEASE_TARGET" --draft --title "VR Control Center $RELEASE_TAG — Windows x64" --notes-file docs/releases/windows.md
           fi
-          gh release create "$RELEASE_TAG" dist/* --verify-tag --draft --title "VR Control Center $RELEASE_TAG — Windows x64" --notes-file docs/releases/windows.md
+          gh release upload "$RELEASE_TAG" dist/* --clobber
