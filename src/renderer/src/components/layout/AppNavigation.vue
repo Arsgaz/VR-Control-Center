@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import AppIcon from '../ui/AppIcon.vue'
+import type { IconName } from '../ui/icon-paths'
 import oneplaceLogo from '../../assets/branding/oneplace-logo.svg'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -8,6 +10,7 @@ type AppSection = 'devices' | 'teamGames' | 'profiles' | 'diagnostics'
 interface NavigationItem {
   id: AppSection
   label: string
+  icon: IconName
 }
 
 defineProps<{
@@ -23,14 +26,17 @@ const { t } = useI18n()
 const items = computed<NavigationItem[]>(() => [
   {
     id: 'devices',
+    icon: 'headset',
     label: t('devices.navigation.title')
   },
   {
     id: 'teamGames',
+    icon: 'monitor',
     label: t('teamGames.title')
   },
   {
     id: 'profiles',
+    icon: 'sliders',
     label: t('settings.navigation.profilesTitle')
   }
 ])
@@ -63,6 +69,7 @@ const items = computed<NavigationItem[]>(() => [
           :aria-current="activeSection === item.id ? 'page' : undefined"
           @click="emit('change', item.id)"
         >
+          <AppIcon :name="item.icon" :size="17" />
           <span>{{ item.label }}</span>
         </button>
       </nav>
@@ -75,22 +82,7 @@ const items = computed<NavigationItem[]>(() => [
         :aria-current="activeSection === 'diagnostics' ? 'page' : undefined"
         @click="emit('change', 'diagnostics')"
       >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 25"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linejoin="round"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <polygon
-            points="9.5,2 14.5,2 15.1,5 17,6.1 19.9,5.1 22.4,9.4 20.1,11.4 20.1,13.6 22.4,15.6 19.9,19.9 17,18.9 15.1,20 14.5,23 9.5,23 8.9,20 7,18.9 4.1,19.9 1.6,15.6 3.9,13.6 3.9,11.4 1.6,9.4 4.1,5.1 7,6.1 8.9,5"
-          />
-          <circle cx="12" cy="12.5" r="3.5" />
-        </svg>
+        <AppIcon name="settings" :size="20" />
       </button>
     </div>
   </header>

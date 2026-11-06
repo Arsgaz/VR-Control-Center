@@ -1,3 +1,6 @@
+import { SteamLibraryService, isSteamAppId } from '@main/infrastructure/steam/steam-library.service'
+import { SteamVrService, SteamVrError } from '@main/infrastructure/steam/steamvr.service'
+import { TeamGameIconsService } from './team-game-icons.service'
 import { isTeamGameConfig } from '@shared/config/team-games.validation'
 import { shell } from 'electron'
 import { stat } from 'node:fs/promises'
@@ -22,7 +25,10 @@ export class TeamGamesService {
 
   public constructor(
     private readonly configuration: ConfigurationService,
-    private readonly platform = process.platform
+    private readonly platform = process.platform,
+    private readonly icons = new TeamGameIconsService(),
+    private readonly steam = new SteamLibraryService(platform),
+    private readonly steamVr = new SteamVrService(steam, platform)
   ) {}
 
   private async validatePath(shortcutPath: string): Promise<void> {
@@ -55,9 +61,18 @@ export class TeamGamesService {
       id: value.id,
       name: value.name.trim(),
       description: value.description.trim(),
-      shortcutPath: value.shortcutPath.trim()
+      shortcutPath: value.shortcutPath.trim(),
+      ...(value.customIcon ? { customIcon: value.customIcon } : {}),
+      ...(value.steamAppId ? { steamAppId: value.steamAppId } : {}),
+      ...(value.requiresSteamVr !== undefined ? { requiresSteamVr: value.requiresSteamVr } : {})
     }
-    await this.validatePath(game.shortcutPath)
+    if (game.customIcon && !(await this.icons.custom(game.customIcon)))
+      throw new Error('Custom icon is unavailable')
+    if (game.steamAppId) {
+      const installed = await this.steam.installed()
+      if (!installed?.some((item) => item.appId === game.steamAppId))
+        throw new Error('Steam game is not installed')
+    } else await this.validatePath(game.shortcutPath)
     return this.configuration.update((config) => {
       if (this.launching.has(game.id)) throw new Error('Game launch is in progress')
       const existing = config.teamGames.some((item) => item.id === game.id)
@@ -67,6 +82,64 @@ export class TeamGamesService {
         : [...config.teamGames, game]
       return config
     })
+  }
+
+  public async icon(value: unknown): Promise<string | null> {
+    if (!value || typeof value !== 'object') return null
+    const request = value as Record<string, unknown>
+    const custom = await this.icons.custom(request.customIcon)
+    if (custom) return custom
+    if (isSteamAppId(request.steamAppId)) return this.steam.icon(request.steamAppId)
+    if (typeof request.shortcutPath !== 'string') return null
+    try {
+      await this.validatePath(request.shortcutPath)
+      return await this.icons.shortcut(request.shortcutPath)
+    } catch {
+      return null
+    }
+  }
+
+  private syncing: Promise<{
+    state: Awaited<ReturnType<ConfigurationService['load']>>
+    summary: { found: boolean; added: number; unresolved: number }
+  }> | null = null
+
+  public syncSteam() {
+    if (this.syncing) return this.syncing
+    const work = (async () => {
+      const scan = await this.steam.discoverVr()
+      let added = 0
+      const current = await this.configuration.load()
+      const missing = scan.games.some(
+        (game) => !current.config.teamGames.some((existing) => existing.steamAppId === game.appId)
+      )
+      const state = missing
+        ? await this.configuration.update((config) => {
+            for (const game of scan.games) {
+              if (config.teamGames.some((existing) => existing.steamAppId === game.appId)) continue
+              if (config.teamGames.length >= 100) throw new Error('Game limit reached')
+              const id = `steam-${game.appId}`
+              if (config.teamGames.some((existing) => existing.id === id))
+                throw new Error('Game id collision')
+              config.teamGames.push({
+                id,
+                name: game.name,
+                description: '',
+                shortcutPath: '',
+                steamAppId: game.appId,
+                requiresSteamVr: true
+              })
+              added++
+            }
+            return config
+          })
+        : current
+      return { state, summary: { found: scan.found, added, unresolved: scan.unresolved } }
+    })().finally(() => {
+      if (this.syncing === work) this.syncing = null
+    })
+    this.syncing = work
+    return work
   }
 
   public remove(id: unknown) {
@@ -90,20 +163,28 @@ export class TeamGamesService {
       const { config } = await this.configuration.load()
       const game = config.teamGames.find((item) => item.id === id)
       if (!game) return { ok: false, error: 'NOT_FOUND' }
-      try {
-        await this.validatePath(game.shortcutPath)
-      } catch {
-        return { ok: false, error: 'INVALID_SHORTCUT' }
+      if (game.steamAppId) {
+        if (!(await this.steam.installed())?.some((item) => item.appId === game.steamAppId))
+          return { ok: false, error: 'STEAM_GAME_UNAVAILABLE' }
+      } else {
+        try {
+          await this.validatePath(game.shortcutPath)
+        } catch {
+          return { ok: false, error: 'INVALID_SHORTCUT' }
+        }
       }
-      // Let the OS resolve shortcut arguments, working directory and launcher.
-      // This does not imply that the franchise's server has finished starting.
-      const error = await shell.openPath(game.shortcutPath)
-      if (error) throw new Error(error)
+      if (game.requiresSteamVr) await this.steamVr.ensureReady()
+      // Steam is given a validated numeric ID; never execute a manifest's command line.
+      if (game.steamAppId) await shell.openExternal(`steam://run/${game.steamAppId}`)
+      else {
+        const error = await shell.openPath(game.shortcutPath)
+        if (error) throw new Error(error)
+      }
       this.lastLaunchAt.set(id, Date.now())
       return { ok: true }
     } catch (error) {
       logger.errorWithCause('Team game launch failed', error, { id })
-      return { ok: false, error: 'LAUNCH_FAILED' }
+      return { ok: false, error: error instanceof SteamVrError ? error.code : 'LAUNCH_FAILED' }
     } finally {
       this.launching.delete(id)
     }

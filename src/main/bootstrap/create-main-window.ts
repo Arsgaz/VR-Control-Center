@@ -24,6 +24,10 @@ export const createMainWindow = (): BrowserWindow => {
     }
   })
 
+  if (process.platform === 'win32') {
+    mainWindow.setMenu(null)
+  }
+
   mainWindow.once('ready-to-show', () => {
     logger.debug('Main window ready to show')
     mainWindow.show()

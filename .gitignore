@@ -5,3 +5,6 @@ resources/tools/win32-x64
 *.log
 *.tsbuildinfo
 .DS_Store
+
+# Local audits and working notes; maintained documentation stays in docs/.
+docs/local/

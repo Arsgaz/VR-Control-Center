@@ -13,5 +13,10 @@ readable in small UI elements and the system tray.
   Electron marks them as templates so macOS adapts them to light/dark appearance.
 - `icon-*.png`: source raster sizes included in the ICO/ICNS files.
 
-Renderer assets are bundled locally, including Matahari Extended 700 from the
-website's CSS. Branding does not require a network connection at runtime.
+Renderer assets are bundled locally. Golos Text Variable is the UI typeface;
+Matahari Extended 700 from the website's CSS is retained for the brand lockup.
+Golos source: https://github.com/google/fonts/tree/main/ofl/golostext
+Its SIL OFL license is included under resources/third-party/GOLOS-TEXT-OFL.txt
+and copied into font-licenses in every packaged platform.
+The static arena-contours.svg background and the shared AppIcon SVG paths are
+local code assets; they do not animate continuously. Branding does not require a network connection at runtime.

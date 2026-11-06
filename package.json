@@ -1,6 +1,6 @@
 {
   "name": "vr-control-center",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Local desktop application for VR headset management.",
   "main": "./out/main/index.js",
   "scripts": {
@@ -83,6 +83,13 @@
         {
           "from": "resources/windows/README-RU.txt",
           "to": "README-Windows.txt"
+        },
+        {
+          "from": "resources/steamvr",
+          "to": "steamvr",
+          "filter": [
+            "**/*"
+          ]
         }
       ]
     },
@@ -93,6 +100,10 @@
         "filter": [
           "**/*"
         ]
+      },
+      {
+        "from": "resources/third-party/GOLOS-TEXT-OFL.txt",
+        "to": "font-licenses/GOLOS-TEXT-OFL.txt"
       }
     ],
     "nsis": {

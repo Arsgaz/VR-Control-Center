@@ -89,8 +89,8 @@
   },
   "danger": {
     "resetTitle": "Reset configuration",
-    "resetDescription": "Removes saved headsets, team games, profiles and settings. Active streams will stop. Game files and shortcuts stay on the PC.",
-    "resetConfirm": "Reset configuration? Devices, team games, profiles and settings will be removed from the application."
+    "resetDescription": "Removes saved headsets, PC games, profiles and settings. Active streams will stop. Game files and shortcuts stay on the PC.",
+    "resetConfirm": "Reset configuration? Devices, PC games, profiles and settings will be removed from the application."
   },
   "states": {
     "unavailable": "Unavailable",

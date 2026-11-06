@@ -409,7 +409,7 @@ const discardAndSwitch = (): void => {
           <div class="profile-actions">
             <button
               type="button"
-              class="text-button danger-text"
+              class="danger-button"
               :disabled="headset.isConfigLoading.value || isCreating || !selectedProfile"
               @click="deleteProfile"
             >

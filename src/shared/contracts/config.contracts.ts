@@ -45,6 +45,7 @@ export type NewStreamProfileConfig = StreamProfileConfig
 export type StreamProfileConfigUpdate = Partial<Omit<StreamProfileConfig, 'id'>>
 
 export interface UserSettingsConfig {
+  steamDirectory?: string
   activeDeviceId: string | null
   activeStreamProfileId: string | null
   language: AppLanguage

@@ -42,3 +42,9 @@ Source and build details: https://zlib.net/ and the FFmpeg dependency recipe abo
 
 Electron and application dependency notices accompany Electron in LICENSE and
 LICENSES.chromium.html in the installed/unpacked application directory.
+
+Golos Text Variable UI font
+Copyright 2019 The Golos Text Project Authors.
+Source: https://github.com/google/fonts/tree/main/ofl/golostext
+License: SIL Open Font License 1.1; see GOLOS-TEXT-OFL.txt.
+All platform packages also include font-licenses/GOLOS-TEXT-OFL.txt.

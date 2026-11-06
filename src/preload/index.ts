@@ -24,6 +24,10 @@ const vrControlApi: VrControlApi = {
   openLogsDirectory: () => ipcRenderer.invoke(APP_IPC_CHANNELS.openLogsDirectory),
   clearOldLogs: () => ipcRenderer.invoke(APP_IPC_CHANNELS.clearOldLogs),
   teamGames: {
+    syncSteam: (chooseDirectory) =>
+      ipcRenderer.invoke(TEAM_GAMES_IPC_CHANNELS.syncSteam, chooseDirectory),
+    selectIcon: () => ipcRenderer.invoke(TEAM_GAMES_IPC_CHANNELS.selectIcon),
+    icon: (game) => ipcRenderer.invoke(TEAM_GAMES_IPC_CHANNELS.icon, game),
     selectShortcut: () => ipcRenderer.invoke(TEAM_GAMES_IPC_CHANNELS.select),
     save: (game) => ipcRenderer.invoke(TEAM_GAMES_IPC_CHANNELS.save, game),
     remove: (id) => ipcRenderer.invoke(TEAM_GAMES_IPC_CHANNELS.remove, id),

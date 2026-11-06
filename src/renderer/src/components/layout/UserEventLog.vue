@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from '../ui/AppIcon.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useEventLog } from '../../composables/useEventLog'
@@ -36,7 +37,9 @@ const journalTitle = computed(() => {
           aria-controls="event-log-list"
           @click="toggleCollapsed"
         >
-          {{ isCollapsed ? t('common.actions.expand') : t('common.actions.collapse') }}
+          <AppIcon :name="isCollapsed ? 'chevronUp' : 'chevronDown'" :size="16" />{{
+            isCollapsed ? t('common.actions.expand') : t('common.actions.collapse')
+          }}
         </button>
         <button
           v-if="!isCollapsed"

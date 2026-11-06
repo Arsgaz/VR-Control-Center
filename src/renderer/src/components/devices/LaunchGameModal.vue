@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from '../ui/AppIcon.vue'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DeviceConfig } from '../../../../shared/contracts/config.contracts'
@@ -176,7 +177,7 @@ onUnmounted(() => {
           :aria-label="t('common.actions.close')"
           @click="$emit('close')"
         >
-          ×
+          <AppIcon name="close" />
         </button>
       </div>
       <div class="library-toolbar">

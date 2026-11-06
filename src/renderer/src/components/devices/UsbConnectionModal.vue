@@ -87,6 +87,10 @@ onMounted(() => void connect())
   margin: 20px 0;
 }
 .usb-device-list button {
+  display: block;
+  white-space: normal;
+  line-height: 1.45;
+  padding: 10px 12px;
   text-align: left;
   overflow-wrap: anywhere;
 }

@@ -214,12 +214,16 @@ export const isStreamProfileConfigUpdate = (value: unknown): value is StreamProf
   )
 }
 
+const isSteamDirectory = (value: unknown): value is string =>
+  typeof value === 'string' && value.length <= 4096 && !value.includes('\0')
+
 export const isUserSettingsUpdate = (value: unknown): value is UserSettingsUpdate => {
   if (!isRecord(value)) {
     return false
   }
 
   return (
+    (value.steamDirectory === undefined || isSteamDirectory(value.steamDirectory)) &&
     (value.activeDeviceId === undefined || isNullableString(value.activeDeviceId)) &&
     (value.activeStreamProfileId === undefined || isNullableString(value.activeStreamProfileId)) &&
     (value.language === undefined || isAppLanguage(value.language)) &&
@@ -276,6 +280,8 @@ export const isAppConfig = (value: unknown): value is AppConfig => {
   }
 
   if (
+    (value.settings.steamDirectory !== undefined &&
+      !isSteamDirectory(value.settings.steamDirectory)) ||
     !isNullableString(value.settings.activeDeviceId) ||
     !isNullableString(value.settings.activeStreamProfileId) ||
     (value.settings.language !== undefined && !isAppLanguage(value.settings.language)) ||
@@ -336,6 +342,9 @@ export const normalizeAppConfig = (value: unknown): AppConfig | null => {
   }))
 
   const settings: UserSettingsConfig = {
+    ...(value.settings.steamDirectory
+      ? { steamDirectory: value.settings.steamDirectory.trim() }
+      : {}),
     activeDeviceId: devices.some((device) => device.id === value.settings.activeDeviceId)
       ? value.settings.activeDeviceId
       : null,
@@ -363,7 +372,10 @@ export const normalizeAppConfig = (value: unknown): AppConfig | null => {
       id: game.id,
       name: game.name.trim(),
       description: game.description.trim(),
-      shortcutPath: game.shortcutPath.trim()
+      shortcutPath: game.shortcutPath.trim(),
+      ...(game.customIcon ? { customIcon: game.customIcon } : {}),
+      ...(game.steamAppId ? { steamAppId: game.steamAppId } : {}),
+      ...(game.requiresSteamVr !== undefined ? { requiresSteamVr: game.requiresSteamVr } : {})
     })),
     streamProfiles,
     settings,

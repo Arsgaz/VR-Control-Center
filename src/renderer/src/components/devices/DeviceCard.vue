@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from '../ui/AppIcon.vue'
 import oneplaceMark from '../../assets/branding/oneplace-mark.svg'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -215,12 +216,12 @@ const runStreamAction = (): void => {
       <div class="device-card-bottom">
         <button
           type="button"
-          class="text-button compact-button library-open"
+          class="secondary-button compact-button library-open"
           :disabled="runtime.connectionState !== 'connected' || operation !== null"
           :title="runtime.connectionState !== 'connected' ? t('devices.hints.connect') : undefined"
           @click="emit('launchGame', device)"
         >
-          {{ t('devices.library.title') }}
+          <AppIcon name="grid" :size="16" />{{ t('devices.library.title') }}
         </button>
         <div class="device-actions">
           <button
@@ -230,7 +231,10 @@ const runStreamAction = (): void => {
             :title="!isAdbAvailable ? t('devices.hints.adb') : undefined"
             @click="runConnectionAction"
           >
-            {{ t(connectionAction.labelKey) }}
+            <AppIcon
+              :name="connectionAction.action === 'disconnect' ? 'unplug' : 'plug'"
+              :size="16"
+            />{{ t(connectionAction.labelKey) }}
           </button>
           <span :title="streamHint"
             ><button
@@ -239,7 +243,10 @@ const runStreamAction = (): void => {
               :disabled="streamAction.disabled"
               @click="runStreamAction"
             >
-              {{ t(streamAction.labelKey) }}
+              <AppIcon
+                :name="streamAction.action === 'stopStream' ? 'stop' : 'play'"
+                :size="16"
+              />{{ t(streamAction.labelKey) }}
             </button></span
           >
           <details
@@ -247,7 +254,9 @@ const runStreamAction = (): void => {
             class="device-menu"
             @keydown.esc.prevent="actionsMenu && (actionsMenu.open = false)"
           >
-            <summary class="icon-button" :aria-label="t('devices.actions.deviceMenu')">⋯</summary>
+            <summary class="icon-button" :aria-label="t('devices.actions.deviceMenu')">
+              <AppIcon name="more" />
+            </summary>
             <div class="device-menu-panel">
               <button
                 type="button"
@@ -257,13 +266,13 @@ const runStreamAction = (): void => {
                 :title="t('devices.timeSync.hint')"
                 @click="syncTime"
               >
-                {{ t('devices.timeSync.action') }}
+                <AppIcon name="clock" :size="16" />{{ t('devices.timeSync.action') }}
               </button>
               <button type="button" @click="openDetails('diagnostics')">
-                {{ t('devices.diagnostics.title') }}
+                <AppIcon name="info" :size="16" />{{ t('devices.diagnostics.title') }}
               </button>
               <button type="button" @click="openDetails('edit')">
-                {{ t('common.actions.edit') }}
+                <AppIcon name="edit" :size="16" />{{ t('common.actions.edit') }}
               </button>
             </div>
           </details>

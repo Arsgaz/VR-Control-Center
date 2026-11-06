@@ -1,3 +1,5 @@
+import { SteamLibraryService } from '@main/infrastructure/steam/steam-library.service'
+import { TeamGameIconsService } from './team-game-icons.service'
 import { dialog, ipcMain } from 'electron'
 import { basename, extname } from 'node:path'
 import { TEAM_GAMES_IPC_CHANNELS } from '@shared/contracts/team-games.contracts'
@@ -7,7 +9,29 @@ import { logger } from '@main/infrastructure/logging/logger'
 import { shortcutExtensions, TeamGamesService } from './team-games.service'
 
 export const registerTeamGamesHandlers = (configuration: ConfigurationService): void => {
-  const service = new TeamGamesService(configuration)
+  const icons = new TeamGameIconsService()
+  const steam = new SteamLibraryService(
+    process.platform,
+    fetch,
+    undefined,
+    undefined,
+    () => configuration.get().config.settings.steamDirectory
+  )
+  const service = new TeamGamesService(configuration, process.platform, icons, steam)
+  ipcMain.handle(TEAM_GAMES_IPC_CHANNELS.icon, (_, request: unknown) => service.icon(request))
+  ipcMain.handle(TEAM_GAMES_IPC_CHANNELS.selectIcon, async () => {
+    const result = await dialog.showOpenDialog({
+      title:
+        configuration.get().config.settings.language === 'ru'
+          ? 'Выберите PNG игры'
+          : 'Choose game PNG',
+      properties: ['openFile'],
+      filters: [{ name: 'PNG', extensions: ['png'] }]
+    })
+    const path = result.canceled ? null : result.filePaths[0]
+    if (!path) return { canceled: true }
+    return { canceled: false, ...(await icons.importPng(path)) }
+  })
   const mutate = async (task: () => Promise<ConfigurationState>): Promise<ConfigurationResult> => {
     try {
       return { ok: true, state: await task() }
@@ -22,6 +46,31 @@ export const registerTeamGamesHandlers = (configuration: ConfigurationService): 
       }
     }
   }
+  ipcMain.handle(TEAM_GAMES_IPC_CHANNELS.syncSteam, async (_, chooseDirectory?: unknown) => {
+    try {
+      if (chooseDirectory === true) {
+        const result = await dialog.showOpenDialog({
+          properties: ['openDirectory'],
+          title: 'Steam'
+        })
+        if (result.canceled || !result.filePaths[0])
+          return {
+            ok: true,
+            state: await configuration.load(),
+            summary: { found: false, added: 0, unresolved: 0, canceled: true }
+          }
+        await steam.setRoot(result.filePaths[0])
+        await configuration.updateSettings({ steamDirectory: result.filePaths[0] })
+      }
+      return { ok: true, ...(await service.syncSteam()) }
+    } catch (error) {
+      logger.errorWithCause('Steam synchronization failed', error)
+      return {
+        ok: false,
+        error: { code: 'CONFIG_INVALID', message: 'Steam synchronization failed' }
+      }
+    }
+  })
   ipcMain.handle(TEAM_GAMES_IPC_CHANNELS.save, (_, value: unknown) =>
     mutate(() => service.save(value))
   )

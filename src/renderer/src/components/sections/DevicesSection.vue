@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from '../ui/AppIcon.vue'
 import UsbConnectionModal from '../devices/UsbConnectionModal.vue'
 import type { UsbConnectionResult } from '../../../../shared/contracts/headset.contracts'
 import oneplaceMark from '../../assets/branding/oneplace-mark.svg'
@@ -148,7 +149,7 @@ const closeDiagnostics = (): void => {
           :disabled="isUsbOpen || !headset.isAdbAvailable.value"
           @click="isUsbOpen = true"
         >
-          {{ t('devices.usb.action') }}
+          <AppIcon name="usb" />{{ t('devices.usb.action') }}
         </button>
         <button
           type="button"
@@ -156,6 +157,7 @@ const closeDiagnostics = (): void => {
           :disabled="headset.isBusy.value || !headset.isAdbAvailable.value"
           @click="headset.refreshDevices"
         >
+          <AppIcon name="refresh" />
           {{
             headset.operation.value === 'devices'
               ? t('devices.actions.refreshing')
@@ -168,7 +170,7 @@ const closeDiagnostics = (): void => {
           class="primary-button"
           @click="openCreateForm"
         >
-          {{ t('devices.actions.addDevice') }}
+          <AppIcon name="plus" />{{ t('devices.actions.addDevice') }}
         </button>
       </div>
     </div>
@@ -181,7 +183,7 @@ const closeDiagnostics = (): void => {
       class="setup-banner"
       role="status"
     >
-      <span class="setup-banner-icon" aria-hidden="true">!</span>
+      <span class="setup-banner-icon"><AppIcon name="alert" /></span>
       <div>
         <strong>{{ t('devices.setup.title') }}</strong>
         <p>
@@ -189,7 +191,7 @@ const closeDiagnostics = (): void => {
         </p>
       </div>
       <button type="button" class="secondary-button" @click="$emit('settings')">
-        {{ t('devices.setup.action') }} <span aria-hidden="true">→</span>
+        {{ t('devices.setup.action') }} <AppIcon name="arrow" :size="16" />
       </button>
     </div>
     <p v-if="headset.configuredDevices.value.length" class="device-overview">
@@ -219,7 +221,7 @@ const closeDiagnostics = (): void => {
         <li>{{ t('devices.setup.step3') }}</li>
       </ol>
       <button type="button" class="primary-button" @click="openCreateForm">
-        {{ t('devices.actions.addDevice') }}
+        <AppIcon name="plus" />{{ t('devices.actions.addDevice') }}
       </button>
     </section>
 

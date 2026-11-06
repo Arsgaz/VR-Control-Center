@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import AppIcon from '../ui/AppIcon.vue'
+import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { TeamGameConfig } from '../../../../shared/contracts/team-games.contracts'
+import TeamGameArtwork from '../team-games/TeamGameArtwork.vue'
 import AppModal from '../ui/AppModal.vue'
-import oneplaceMark from '../../assets/branding/oneplace-mark.svg'
 import { useAppConfig } from '../../composables/useAppConfig'
 import { useEventLog } from '../../composables/useEventLog'
 
@@ -11,6 +12,31 @@ const { t } = useI18n()
 const appConfig = useAppConfig()
 const { addEvent } = useEventLog()
 const games = computed(() => appConfig.config.value?.teamGames ?? [])
+const steamIconRevision = ref(0)
+const syncingSteam = ref(false)
+const steamFeedback = ref('')
+const syncSteam = async (chooseDirectory = false): Promise<void> => {
+  if (syncingSteam.value) return
+  syncingSteam.value = true
+  steamFeedback.value = ''
+  try {
+    const result = await appConfig.syncSteam(chooseDirectory)
+    if (result && !result.canceled) steamIconRevision.value++
+    if (!result) steamFeedback.value = t('teamGames.errors.steamSync')
+    else if (!result.canceled)
+      steamFeedback.value = !result.found
+        ? t('teamGames.steamNotFound')
+        : t('teamGames.steamSummary', { added: result.added, unresolved: result.unresolved })
+  } catch {
+    steamFeedback.value = t('teamGames.errors.steamSync')
+  } finally {
+    syncingSteam.value = false
+  }
+}
+onMounted(async () => {
+  await appConfig.loadConfig()
+  await syncSteam()
+})
 const launching = ref(new Set<string>())
 const feedback = ref<Record<string, string>>({})
 const editing = ref(false)
@@ -50,6 +76,19 @@ const chooseShortcut = async (): Promise<void> => {
     choosing.value = false
   }
 }
+const chooseIcon = async (): Promise<void> => {
+  if (busy.value || choosing.value) return
+  choosing.value = true
+  error.value = ''
+  try {
+    const result = await window.vrControl.teamGames.selectIcon()
+    if (!result.canceled) draft.value.customIcon = result.icon
+  } catch {
+    error.value = t('teamGames.errors.icon')
+  } finally {
+    choosing.value = false
+  }
+}
 const save = async (): Promise<void> => {
   if (busy.value || choosing.value) return
   busy.value = true
@@ -85,6 +124,9 @@ const launch = async (game: TeamGameConfig): Promise<void> => {
   launching.value.add(game.id)
   feedback.value[game.id] = ''
   try {
+    feedback.value[game.id] = game.requiresSteamVr
+      ? t('teamGames.startingSteamVr')
+      : t('teamGames.launching')
     const result = await window.vrControl.teamGames.launch(game.id)
     const message = result.ok ? t('teamGames.requested') : t(`teamGames.errors.${result.error}`)
     feedback.value[game.id] = message
@@ -107,18 +149,41 @@ const launch = async (game: TeamGameConfig): Promise<void> => {
         </div>
         <p class="muted-text">{{ t('teamGames.description') }}</p>
       </div>
-      <button
-        type="button"
-        class="primary-button"
-        :disabled="!appConfig.config.value"
-        @click="openEditor()"
-      >
-        {{ t('teamGames.add') }}
-      </button>
+      <div class="section-actions">
+        <button
+          type="button"
+          class="secondary-button"
+          :disabled="syncingSteam"
+          @click="syncSteam()"
+        >
+          <AppIcon name="refresh" />{{
+            syncingSteam ? t('teamGames.syncingSteam') : t('teamGames.syncSteam')
+          }}
+        </button>
+        <button
+          type="button"
+          class="secondary-button"
+          :disabled="syncingSteam"
+          @click="syncSteam(true)"
+        >
+          <AppIcon name="folder" />{{ t('teamGames.steamFolder') }}
+        </button>
+        <button
+          type="button"
+          class="primary-button"
+          :disabled="!appConfig.config.value"
+          @click="openEditor()"
+        >
+          <AppIcon name="plus" />{{ t('teamGames.add') }}
+        </button>
+      </div>
     </div>
 
+    <p v-if="syncingSteam" class="muted-text" role="status">{{ t('teamGames.syncingSteam') }}</p>
+    <p v-if="steamFeedback" class="field-hint" role="status">{{ steamFeedback }}</p>
+
     <div v-if="!games.length" class="empty-state-card team-games-empty">
-      <div class="empty-device-symbol"><img :src="oneplaceMark" alt="" /></div>
+      <div class="empty-device-symbol"><AppIcon name="monitor" :size="30" /></div>
       <h3>{{ t('teamGames.emptyTitle') }}</h3>
       <p class="muted-text">{{ t('teamGames.emptyDescription') }}</p>
       <button
@@ -127,16 +192,12 @@ const launch = async (game: TeamGameConfig): Promise<void> => {
         :disabled="!appConfig.config.value"
         @click="openEditor()"
       >
-        {{ t('teamGames.add') }}
+        <AppIcon name="plus" />{{ t('teamGames.add') }}
       </button>
     </div>
     <div v-else class="team-game-grid">
       <article v-for="game in games" :key="game.id" class="team-game-card">
-        <div class="team-game-art" aria-hidden="true">
-          <span class="team-game-platform">{{ t('teamGames.local') }}</span>
-          <span class="team-game-monogram">{{ game.name.slice(0, 2).toLocaleUpperCase() }}</span>
-          <img :src="oneplaceMark" alt="" />
-        </div>
+        <TeamGameArtwork :game="game" :revision="steamIconRevision" />
         <div class="team-game-body">
           <h3>{{ game.name }}</h3>
           <p class="muted-text team-game-description">
@@ -149,7 +210,9 @@ const launch = async (game: TeamGameConfig): Promise<void> => {
               :disabled="launching.has(game.id)"
               @click="launch(game)"
             >
-              {{ launching.has(game.id) ? t('teamGames.launching') : t('common.actions.start') }}
+              <AppIcon name="play" />{{
+                launching.has(game.id) ? t('teamGames.launching') : t('common.actions.start')
+              }}
             </button>
             <button
               type="button"
@@ -158,7 +221,7 @@ const launch = async (game: TeamGameConfig): Promise<void> => {
               :aria-label="t('teamGames.editNamed', { name: game.name })"
               @click="openEditor(game)"
             >
-              {{ t('common.actions.edit') }}
+              <AppIcon name="edit" />{{ t('common.actions.edit') }}
             </button>
           </div>
           <p v-if="feedback[game.id]" class="field-hint team-game-feedback" role="status">
@@ -186,7 +249,7 @@ const launch = async (game: TeamGameConfig): Promise<void> => {
             :aria-label="t('common.actions.close')"
             @click="closeEditor"
           >
-            ×
+            <AppIcon name="close" />
           </button>
         </div>
         <label class="team-game-field">
@@ -206,12 +269,48 @@ const launch = async (game: TeamGameConfig): Promise<void> => {
           <textarea
             v-model="draft.description"
             maxlength="400"
-            rows="3"
+            rows="2"
             :disabled="busy || choosing"
             :placeholder="t('teamGames.descriptionPlaceholder')"
           />
         </label>
         <div class="team-game-field">
+          <span>{{ t('teamGames.iconTitle') }}</span>
+          <div class="team-game-icon-editor">
+            <TeamGameArtwork :game="draft" />
+            <div class="team-game-icon-controls">
+              <div class="team-game-icon-actions">
+                <button
+                  type="button"
+                  class="secondary-button"
+                  :disabled="busy || choosing"
+                  @click="chooseIcon"
+                >
+                  <AppIcon name="image" />{{ t('teamGames.chooseIcon') }}
+                </button>
+                <button
+                  v-if="draft.customIcon"
+                  type="button"
+                  class="secondary-button"
+                  :disabled="busy || choosing"
+                  @click="draft.customIcon = null"
+                >
+                  {{ t(draft.steamAppId ? 'teamGames.resetSteamIcon' : 'teamGames.resetIcon') }}
+                </button>
+              </div>
+              <p class="field-hint">
+                {{ t(draft.steamAppId ? 'teamGames.steamIconHint' : 'teamGames.iconHint') }}
+              </p>
+            </div>
+          </div>
+        </div>
+        <label class="steamvr-option">
+          <input v-model="draft.requiresSteamVr" type="checkbox" :disabled="busy || choosing" />
+          <span>{{ t('teamGames.requiresSteamVr') }}</span>
+        </label>
+        <p class="field-hint">{{ t('teamGames.steamVrHint') }}</p>
+        <p v-if="draft.steamAppId" class="field-hint">Steam AppID: {{ draft.steamAppId }}</p>
+        <div v-if="!draft.steamAppId" class="team-game-field">
           <label for="team-game-shortcut">{{ t('teamGames.shortcut') }}</label>
           <div class="team-game-path">
             <input
@@ -229,7 +328,7 @@ const launch = async (game: TeamGameConfig): Promise<void> => {
               :disabled="busy || choosing"
               @click="chooseShortcut"
             >
-              {{ t('teamGames.choose') }}
+              <AppIcon name="folder" />{{ t('teamGames.choose') }}
             </button>
           </div>
           <p class="field-hint">{{ t('teamGames.shortcutHint') }}</p>
@@ -257,7 +356,12 @@ const launch = async (game: TeamGameConfig): Promise<void> => {
             <button
               type="submit"
               class="primary-button"
-              :disabled="busy || choosing || !draft.name.trim() || !draft.shortcutPath.trim()"
+              :disabled="
+                busy ||
+                choosing ||
+                !draft.name.trim() ||
+                (!draft.steamAppId && !draft.shortcutPath.trim())
+              "
             >
               {{ busy ? t('common.actions.saving') : t('common.actions.save') }}
             </button>
@@ -269,6 +373,42 @@ const launch = async (game: TeamGameConfig): Promise<void> => {
 </template>
 
 <style scoped>
+.team-game-icon-editor {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+.team-game-icon-controls {
+  display: grid;
+  gap: 8px;
+}
+.team-game-icon-editor :deep(.team-game-art) {
+  height: 80px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.team-game-icon-editor :deep(.game-image) {
+  width: 60px;
+  height: 60px;
+}
+.team-game-icon-editor :deep(.arena-mark),
+.team-game-icon-editor :deep(.team-game-platform) {
+  display: none;
+}
+.team-game-field {
+  font-size: 0.86rem;
+}
+
+.steamvr-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.steamvr-option input {
+  accent-color: var(--accent);
+}
 .team-game-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -277,43 +417,13 @@ const launch = async (game: TeamGameConfig): Promise<void> => {
 .team-game-card {
   overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--surface);
 }
-.team-game-art {
-  position: relative;
-  height: 150px;
-  display: grid;
-  place-items: center;
-  border-bottom: 1px solid var(--border);
-  background:
-    radial-gradient(ellipse at 20% 0%, #8c197d66, transparent 70%),
-    linear-gradient(135deg, #20132f, #0a0a15);
-}
-.team-game-art img {
-  position: absolute;
-  right: 20px;
-  bottom: 20px;
-  opacity: 0.25;
-  width: 54px;
-  height: 30px;
-  object-fit: contain;
-  filter: drop-shadow(0 10px 22px #fb07f522);
-}
-.team-game-monogram {
-  font-family: var(--heading-font);
-  font-size: 2.8rem;
-  color: #f0ccf1;
-  letter-spacing: -0.05em;
-}
-.team-game-platform {
-  position: absolute;
-  top: 16px;
-  left: 18px;
-  color: #efb8ed;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.62rem;
+.team-game-icon-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 .team-game-body {
   padding: 22px;
@@ -353,7 +463,7 @@ const launch = async (game: TeamGameConfig): Promise<void> => {
 }
 .team-game-editor {
   display: grid;
-  gap: 22px;
+  gap: 16px;
 }
 .team-game-field {
   display: grid;
@@ -367,7 +477,7 @@ const launch = async (game: TeamGameConfig): Promise<void> => {
   font: inherit;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: #090a16;
+  background: var(--surface-inset);
 }
 .team-game-field textarea {
   resize: vertical;

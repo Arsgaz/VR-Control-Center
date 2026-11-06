@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 
-withDefaults(defineProps<{ labelledby: string; wide?: boolean; busy?: boolean }>(), {
+const props = withDefaults(defineProps<{ labelledby: string; wide?: boolean; busy?: boolean }>(), {
   wide: false,
   busy: false
 })
@@ -11,6 +11,15 @@ let previousFocus: HTMLElement | null = null
 onMounted(() => {
   previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
   dialog.value?.showModal()
+  // A lone bottom Close button must not scroll an information dialog past its title.
+  if (dialog.value && !dialog.value.querySelector('[autofocus]')) {
+    const title = document.getElementById(props.labelledby)
+    if (title && dialog.value.contains(title)) {
+      title.tabIndex = -1
+      title.focus({ preventScroll: true })
+    }
+    dialog.value.scrollTop = 0
+  }
 })
 onUnmounted(() => {
   previousFocus?.focus()
