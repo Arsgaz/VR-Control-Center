@@ -1,4 +1,8 @@
-import { CONFIG_SCHEMA_VERSION, type AppConfig, type AppLanguage } from '../contracts/config.contracts'
+import {
+  CONFIG_SCHEMA_VERSION,
+  type AppConfig,
+  type AppLanguage
+} from '../contracts/config.contracts'
 
 export const resolveLanguageFromLocale = (locale: string): AppLanguage => {
   return locale.toLowerCase().startsWith('ru') ? 'ru' : 'en'
@@ -13,6 +17,7 @@ export const createDefaultConfig = (
     displayName: 'VR Control Center'
   },
   devices: [],
+  teamGames: [],
   streamProfiles: [
     {
       id: 'default',
@@ -34,9 +39,9 @@ export const createDefaultConfig = (
     launchAtStartup: false,
     closeBehavior: 'quit',
     runtimePollingIntervalSeconds: 10,
-    adbSource: 'system',
+    adbSource: 'auto',
     adbPath: '',
-    scrcpySource: 'system',
+    scrcpySource: 'auto',
     scrcpyPath: '',
     logLevel: 'info',
     verboseLogging: options.verboseLogging ?? false

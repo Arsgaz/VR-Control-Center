@@ -1,0 +1,44 @@
+VR Control Center — bundled Windows tools
+
+The complete, unmodified scrcpy Windows x64 distribution is included under
+resources/tools/win32-x64/scrcpy. The Android server matches the scrcpy client.
+No binaries from PATH are required for the default automatic Windows setup.
+
+scrcpy 5.0.1 — Genymobile and contributors, Apache License 2.0.
+Official archive:
+https://github.com/Genymobile/scrcpy/releases/download/v5.0.1/scrcpy-win64-v5.0.1.zip
+SHA-256: b12a2c4ee8be317422451fc7dcf8ee20a71b5ea7ef9ad73ddd825a25316227a5
+Source and dependency build recipes:
+https://github.com/Genymobile/scrcpy/tree/v5.0.1/app/deps
+https://github.com/Genymobile/scrcpy/archive/refs/tags/v5.0.1.tar.gz
+License: SCRCPY-APACHE-2.0.txt (also retained in the original tools directory).
+
+ADB 37.0.1 and AdbWinApi.dll / AdbWinUsbApi.dll are identical to Google's official
+platform-tools_r37.0.1-win.zip. The complete upstream notices are in ADB-NOTICE.txt.
+https://dl.google.com/android/repository/platform-tools_r37.0.1-win.zip
+Archive SHA-256: 45f4d63113e895ebde0c90f194099a4676b6ac653bd28d54314a9e022bbc1a99
+Source: https://android.googlesource.com/platform/packages/modules/adb/
+
+FFmpeg 9.0.2 — FFmpeg contributors, LGPL 2.1 or later; license: LGPL-2.1.txt.
+Source: https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz
+Source SHA-256: 8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e
+The exact configuration is in scrcpy v5.0.1 app/deps/ffmpeg.sh and in the DLL's
+embedded build configuration. The shipped libraries use dynamic linking.
+
+libusb 1.0.30 — LGPL 2.1 or later; license: LGPL-2.1.txt.
+Source: https://github.com/libusb/libusb/archive/refs/tags/v1.0.30.tar.gz
+Source SHA-256: 2ae28adb0bb9558c86135c4e1c11b320b0805461e207a64a6e520a114094bf07
+
+SDL 3.4.18 — SDL contributors, zlib license; license: SDL-LICENSE.txt.
+Source: https://github.com/libsdl-org/SDL/archive/refs/tags/release-3.4.18.tar.gz
+Source SHA-256: c4b08b950bd29d83caae0ab8d884298d27046a9d30700fb42841c50992665c90
+
+dav1d 1.5.4 — VideoLAN and contributors, BSD license; license: DAV1D-LICENSE.txt.
+Source: https://downloads.videolan.org/pub/videolan/dav1d/1.5.4/dav1d-1.5.4.tar.xz
+Source SHA-256: 686616b7c69eb88d44459391ab25cac13b6647a3b288835c5784e71c1514a5c5
+
+zlib — Jean-loup Gailly and Mark Adler, zlib license: ZLIB-LICENSE.txt.
+Source and build details: https://zlib.net/ and the FFmpeg dependency recipe above.
+
+Electron and application dependency notices accompany Electron in LICENSE and
+LICENSES.chromium.html in the installed/unpacked application directory.

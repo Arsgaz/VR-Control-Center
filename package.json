@@ -1,20 +1,24 @@
 {
   "name": "vr-control-center",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Local desktop application for VR headset management.",
   "main": "./out/main/index.js",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint .",
     "test": "vitest run",
-    "typecheck": "npm run typecheck:main && npm run typecheck:renderer",
+    "typecheck": "npm run typecheck:main && npm run typecheck:renderer && npm run typecheck:tests",
     "typecheck:main": "tsc --noEmit -p tsconfig.node.json",
     "typecheck:renderer": "vue-tsc --noEmit -p tsconfig.web.json",
+    "typecheck:tests": "tsc --noEmit -p tests/tsconfig.json",
+    "electron:install": "install-electron",
     "dev": "electron-vite dev",
     "build": "npm run typecheck && electron-vite build",
     "build:mac": "npm run build && electron-builder --mac",
-    "build:win": "npm run build && electron-builder --win",
-    "postinstall": "electron-builder install-app-deps"
+    "build:win": "npm run tools:prepare:win && npm run build && electron-builder --win --x64 --publish never && npm run verify:win && node scripts/write-release-checksums.mjs",
+    "postinstall": "npm run electron:install && electron-builder install-app-deps",
+    "tools:prepare:win": "node scripts/prepare-windows-tools.mjs",
+    "verify:win": "node scripts/verify-windows-package.mjs"
   },
   "dependencies": {
     "electron-log": "^5.4.3",
@@ -51,15 +55,60 @@
     "mac": {
       "target": [
         "dmg"
-      ]
+      ],
+      "icon": "resources/branding/icon.icns"
     },
     "win": {
       "target": [
-        "nsis"
+        "nsis",
+        "zip"
+      ],
+      "icon": "resources/branding/icon.ico",
+      "artifactName": "${productName}-${version}-win-${arch}.${ext}",
+      "extraResources": [
+        {
+          "from": "resources/tools/win32-x64",
+          "to": "tools/win32-x64",
+          "filter": [
+            "**/*"
+          ]
+        },
+        {
+          "from": "resources/third-party",
+          "to": "third-party",
+          "filter": [
+            "**/*"
+          ]
+        },
+        {
+          "from": "resources/windows/README-RU.txt",
+          "to": "README-Windows.txt"
+        }
       ]
+    },
+    "extraResources": [
+      {
+        "from": "resources/branding",
+        "to": "branding",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "${productName}-${version}-win-${arch}-setup.${ext}",
+      "createDesktopShortcut": true
     }
   },
   "engines": {
     "node": ">=24.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Arsgaz/VR-Control-Center.git"
+  },
+  "author": "OnePlace"
 }

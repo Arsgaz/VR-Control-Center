@@ -1,3 +1,5 @@
+import { registerApplicationsHandlers } from '@main/modules/applications/applications.handlers'
+import { registerTeamGamesHandlers } from '@main/modules/team-games/team-games.handlers'
 import { registerApplicationHandlers } from '@main/modules/application/app.handlers'
 import { registerConfigurationHandlers } from '@main/modules/configuration/configuration.handlers'
 import type { ConfigurationService } from '@main/modules/configuration/configuration.service'
@@ -13,7 +15,9 @@ export interface IpcDependencies {
 }
 
 export const registerIpc = (dependencies: IpcDependencies): void => {
+  registerTeamGamesHandlers(dependencies.configurationService)
   registerApplicationHandlers()
+  registerApplicationsHandlers(dependencies.configurationService, dependencies.runtimeManager)
   registerConfigurationHandlers(dependencies.configurationService)
   registerDeviceHandlers({
     configurationService: dependencies.configurationService,

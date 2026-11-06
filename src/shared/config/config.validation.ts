@@ -1,3 +1,4 @@
+import { isTeamGameConfig } from './team-games.validation'
 import {
   CONFIG_SCHEMA_VERSION,
   type AppConfig,
@@ -39,10 +40,8 @@ export const isAppLanguage = (value: unknown): value is AppConfig['settings']['l
   return value === 'en' || value === 'ru'
 }
 
-export const isToolBinarySource = (
-  value: unknown
-): value is AppConfig['settings']['adbSource'] => {
-  return value === 'system' || value === 'bundled' || value === 'custom'
+export const isToolBinarySource = (value: unknown): value is AppConfig['settings']['adbSource'] => {
+  return value === 'auto' || value === 'system' || value === 'bundled' || value === 'custom'
 }
 
 export const isCloseBehavior = (
@@ -127,7 +126,9 @@ export const isNewDeviceConfig = (value: unknown): value is NewDeviceConfig => {
   )
 }
 
-const isStoredDeviceConfig = (value: unknown): value is DeviceConfig | Omit<DeviceConfig, 'streamProfileId'> => {
+const isStoredDeviceConfig = (
+  value: unknown
+): value is DeviceConfig | Omit<DeviceConfig, 'streamProfileId'> => {
   return (
     isRecord(value) &&
     isString(value.id) &&
@@ -171,7 +172,10 @@ export const isNewStreamProfileConfig = (value: unknown): value is NewStreamProf
   )
 }
 
-const isStoredStreamProfileConfig = (value: unknown): value is Partial<StreamProfileConfig> & Pick<StreamProfileConfig, 'id' | 'name' | 'noAudio' | 'crop'> => {
+const isStoredStreamProfileConfig = (
+  value: unknown
+): value is Partial<StreamProfileConfig> &
+  Pick<StreamProfileConfig, 'id' | 'name' | 'noAudio' | 'crop'> => {
   return (
     isRecord(value) &&
     isString(value.id) &&
@@ -190,9 +194,7 @@ const isStoredStreamProfileConfig = (value: unknown): value is Partial<StreamPro
   )
 }
 
-export const isStreamProfileConfigUpdate = (
-  value: unknown
-): value is StreamProfileConfigUpdate => {
+export const isStreamProfileConfigUpdate = (value: unknown): value is StreamProfileConfigUpdate => {
   if (!isRecord(value)) {
     return false
   }
@@ -248,10 +250,17 @@ export const isAppConfig = (value: unknown): value is AppConfig => {
     return false
   }
 
+  if (
+    value.teamGames !== undefined &&
+    (!Array.isArray(value.teamGames) ||
+      value.teamGames.length > 100 ||
+      !value.teamGames.every(isTeamGameConfig) ||
+      new Set(value.teamGames.map((game) => game.id)).size !== value.teamGames.length)
+  )
+    return false
+
   const hasValidDevices = value.devices.every((device) => {
-    return (
-      isStoredDeviceConfig(device)
-    )
+    return isStoredDeviceConfig(device)
   })
 
   if (!hasValidDevices || !Array.isArray(value.streamProfiles)) {
@@ -272,12 +281,14 @@ export const isAppConfig = (value: unknown): value is AppConfig => {
     (value.settings.language !== undefined && !isAppLanguage(value.settings.language)) ||
     (value.settings.autoReconnect !== undefined && !isBoolean(value.settings.autoReconnect)) ||
     (value.settings.launchAtStartup !== undefined && !isBoolean(value.settings.launchAtStartup)) ||
-    (value.settings.closeBehavior !== undefined && !isCloseBehavior(value.settings.closeBehavior)) ||
+    (value.settings.closeBehavior !== undefined &&
+      !isCloseBehavior(value.settings.closeBehavior)) ||
     (value.settings.runtimePollingIntervalSeconds !== undefined &&
       !isRuntimePollingIntervalSeconds(value.settings.runtimePollingIntervalSeconds)) ||
     (value.settings.adbSource !== undefined && !isToolBinarySource(value.settings.adbSource)) ||
     (value.settings.adbPath !== undefined && !isString(value.settings.adbPath)) ||
-    (value.settings.scrcpySource !== undefined && !isToolBinarySource(value.settings.scrcpySource)) ||
+    (value.settings.scrcpySource !== undefined &&
+      !isToolBinarySource(value.settings.scrcpySource)) ||
     (value.settings.scrcpyPath !== undefined && !isString(value.settings.scrcpyPath)) ||
     (value.settings.logLevel !== undefined && !isLoggerLevel(value.settings.logLevel)) ||
     (value.settings.verboseLogging !== undefined && !isBoolean(value.settings.verboseLogging))
@@ -325,19 +336,18 @@ export const normalizeAppConfig = (value: unknown): AppConfig | null => {
   }))
 
   const settings: UserSettingsConfig = {
-    activeDeviceId:
-      devices.some((device) => device.id === value.settings.activeDeviceId)
-        ? value.settings.activeDeviceId
-        : null,
+    activeDeviceId: devices.some((device) => device.id === value.settings.activeDeviceId)
+      ? value.settings.activeDeviceId
+      : null,
     activeStreamProfileId: value.settings.activeStreamProfileId,
     language: value.settings.language ?? 'en',
     autoReconnect: value.settings.autoReconnect ?? true,
     launchAtStartup: value.settings.launchAtStartup ?? false,
     closeBehavior: value.settings.closeBehavior ?? 'quit',
     runtimePollingIntervalSeconds: value.settings.runtimePollingIntervalSeconds ?? 10,
-    adbSource: value.settings.adbSource ?? 'system',
+    adbSource: value.settings.adbSource ?? 'auto',
     adbPath: value.settings.adbPath ?? '',
-    scrcpySource: value.settings.scrcpySource ?? 'system',
+    scrcpySource: value.settings.scrcpySource ?? 'auto',
     scrcpyPath: value.settings.scrcpyPath ?? '',
     logLevel: value.settings.logLevel ?? value.logger.level,
     verboseLogging: value.settings.verboseLogging ?? false
@@ -349,6 +359,12 @@ export const normalizeAppConfig = (value: unknown): AppConfig | null => {
       displayName: value.application.displayName
     },
     devices,
+    teamGames: (value.teamGames ?? []).map((game) => ({
+      id: game.id,
+      name: game.name.trim(),
+      description: game.description.trim(),
+      shortcutPath: game.shortcutPath.trim()
+    })),
     streamProfiles,
     settings,
     logger: {

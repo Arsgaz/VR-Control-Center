@@ -9,6 +9,6 @@ defineProps<{
 <template>
   <span class="operator-status" :class="tone ?? 'neutral'">
     <span class="status-label">{{ label }}</span>
-    <strong>{{ value }}</strong>
+    <strong :title="value">{{ value }}</strong>
   </span>
 </template>

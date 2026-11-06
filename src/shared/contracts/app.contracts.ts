@@ -1,3 +1,5 @@
+import type { ApplicationsApi } from './applications.contracts'
+import type { TeamGamesApi } from './team-games.contracts'
 import type { HeadsetApi } from './headset.contracts'
 import type { ConfigurationApi } from './config.contracts'
 
@@ -18,6 +20,7 @@ export interface AppInfo {
   arch: string
   electronVersion: string
   nodeVersion: string
+  bundledToolsDirectory: string | null
 }
 
 export interface TechnicalLogInfo {
@@ -44,4 +47,6 @@ export interface VrControlApi {
   clearOldLogs: () => Promise<ClearOldLogsResult>
   configuration: ConfigurationApi
   headset: HeadsetApi
+  applications: ApplicationsApi
+  teamGames: TeamGamesApi
 }

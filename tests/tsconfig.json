@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.node.json",
+  "include": ["**/*.ts", "../vitest.config.ts"],
+  "exclude": [],
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "paths": {
+      "@main/*": ["src/main/*"],
+      "@renderer/*": ["src/renderer/src/*"],
+      "@shared/*": ["src/shared/*"]
+    }
+  }
+}

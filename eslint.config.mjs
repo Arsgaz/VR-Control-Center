@@ -19,10 +19,27 @@ export default tseslint.config(
     }
   },
   {
-    files: ['src/renderer/**/*.{ts,vue}'],
+    files: ['scripts/*.mjs'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        Buffer: 'readonly',
+        fetch: 'readonly',
+        AbortSignal: 'readonly'
+      }
+    }
+  },
+  {
+    files: ['src/renderer/**/*.{ts,vue}', 'tests/renderer/**/*.ts'],
     languageOptions: {
       globals: {
         Event: 'readonly',
+        document: 'readonly',
+        HTMLElement: 'readonly',
+        Node: 'readonly',
+        PointerEvent: 'readonly',
+        HTMLDialogElement: 'readonly',
+        HTMLDetailsElement: 'readonly',
         HTMLInputElement: 'readonly',
         window: 'readonly'
       }

@@ -46,9 +46,11 @@ export const createUserEventEntry = (
 }
 
 export const toUserFacingError = (
-  operation: 'environment' | 'devices' | 'connect' | 'disconnect' | 'startStream' | 'stopStream'
+  operation:
+    'environment' | 'devices' | 'connect' | 'disconnect' | 'startStream' | 'stopStream' | 'syncTime'
 ): UserEventInput => {
   const messages: Record<typeof operation, UserEventInput> = {
+    syncTime: { level: 'error', message: translate('devices.timeSync.errors.COMMAND_FAILED') },
     environment: {
       level: 'error',
       message: translate('logger.events.adbNotFound'),

@@ -6,22 +6,23 @@
   "section": {
     "label": "Devices / Management",
     "title": "Devices",
-    "description": "Local headset configuration and runtime controls for ADB and scrcpy."
+    "description": "Connect your headsets and manage their streams."
   },
   "empty": {
     "label": "No devices configured",
     "title": "Add the first VR headset",
-    "description": "Devices are stored in the local configuration file and get fresh runtime state on each app start."
+    "description": "Connect your headset to the same network as your computer, then add its address."
   },
   "actions": {
     "addDevice": "Add device",
-    "refreshAdbDevices": "Refresh ADB devices",
+    "refreshAdbDevices": "Refresh",
     "refreshing": "Refreshing...",
     "startStream": "Start stream",
     "stopStream": "Stop stream",
     "starting": "Starting...",
     "stopping": "Stopping...",
-    "launchGame": "Launch game"
+    "launchGame": "Launch game",
+    "deviceMenu": "Device actions"
   },
   "status": {
     "label": "Status",
@@ -56,11 +57,12 @@
     "addTitle": "Add device",
     "editTitle": "Edit device",
     "name": "Name",
-    "address": "IP:port",
+    "address": "Headset address",
     "streamProfile": "Stream profile",
-    "noProfile": "No profile",
+    "noProfile": "Default settings",
     "namePlaceholder": "Quest 01",
-    "addressPlaceholder": "192.168.1.100:5555"
+    "addressPlaceholder": "192.168.1.100:5555",
+    "addressHint": "Network debugging IP address and port, for example 192.168.1.100:5555."
   },
   "launchGame": {
     "title": "Launch game",
@@ -89,5 +91,60 @@
     "lastUpdate": "Last update",
     "preparedTitle": "Prepared diagnostics",
     "preparedDescription": "Model, serial, OS version, battery details, temperature, Wi-Fi, memory, storage and foreground activity will be added when runtime collection is implemented."
+  },
+  "setup": {
+    "title": "Set up your connection",
+    "adb": "ADB was not found. Choose its location in Settings to connect headsets.",
+    "scrcpy": "scrcpy was not found. You can connect headsets, but streaming requires scrcpy.",
+    "action": "Open settings",
+    "step1": "Enable developer mode and authorize debugging on your headset.",
+    "step2": "Enable network ADB and find your headset’s IP address and port.",
+    "step3": "Add the address to connect and start streaming from its card."
+  },
+  "connectedCount": "Online: {count} of {total}",
+  "hints": {
+    "busy": "Wait for the current operation to finish.",
+    "adb": "Set up ADB to connect.",
+    "scrcpy": "Set up scrcpy to stream.",
+    "connect": "Connect the headset first."
+  },
+  "library": {
+    "title": "Applications",
+    "search": "Find an application",
+    "searchHint": "Name or package identifier",
+    "artworkProgress": "Updating names and artwork: {count} / {total}",
+    "artworkDone": "Artwork: {count} of {total}. The remaining applications use placeholder cards and can still be launched.",
+    "loading": "Reading applications from the headset…",
+    "empty": "No launchable applications found",
+    "emptyHint": "Shows installed applications with a launch activity, excluding background services.",
+    "noResults": "No matches. Try another name or package identifier.",
+    "count": "Showing {count} of {total}",
+    "launching": "Launching…",
+    "launched": "{name} launched on {device}.",
+    "launchNamed": "Launch {name}",
+    "errors": {
+      "INVALID_REQUEST": "Invalid request. Refresh the application list.",
+      "DEVICE_NOT_FOUND": "This headset was removed. Close the library and select another device.",
+      "DEVICE_NOT_CONNECTED": "The headset is disconnected or debugging is unauthorized. Connect it and refresh the list.",
+      "LIST_FAILED": "Could not read applications. Check ADB and the headset connection, then try again.",
+      "APP_NOT_FOUND": "This application is no longer available to launch. Refresh the list.",
+      "LAUNCH_FAILED": "Could not launch the application. The headset may be disconnected or have denied the launch. See technical logs for details.",
+      "ARTWORK_FAILED": "Artwork could not be loaded. You can still launch the application."
+    }
+  },
+  "timeSync": {
+    "action": "Set current time",
+    "progress": "Setting time from this computer…",
+    "success": "Time set and verified.",
+    "hint": "Copy the date and time from this computer. Make sure the PC clock is correct. The headset time zone stays unchanged.",
+    "errors": {
+      "DEVICE_NOT_FOUND": "Headset no longer found. Refresh the device list.",
+      "NOT_CONNECTED": "Connect the headset over ADB and try again.",
+      "PERMISSION_DENIED": "The headset firmware denied changing time over ADB.",
+      "SET_FAILED": "The headset did not confirm the time update. See technical logs for details.",
+      "VERIFY_FAILED": "Could not verify the headset clock. Try again.",
+      "COMMAND_FAILED": "Could not set the time. Check the ADB connection and try again.",
+      "SUPERSEDED": "Operation canceled: the headset connection or settings changed."
+    }
   }
 }

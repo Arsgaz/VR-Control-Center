@@ -1,3 +1,5 @@
+import enTeamGames from '../locales/en/teamGames.json'
+import ruTeamGames from '../locales/ru/teamGames.json'
 import enCommon from '../locales/en/common.json'
 import enDevices from '../locales/en/devices.json'
 import enDialogs from '../locales/en/dialogs.json'
@@ -19,7 +21,8 @@ const modules = {
     dialogs: enDialogs,
     logger: enLogger,
     profiles: enProfiles,
-    settings: enSettings
+    settings: enSettings,
+    teamGames: enTeamGames
   },
   ru: {
     common: ruCommon,
@@ -27,7 +30,8 @@ const modules = {
     dialogs: ruDialogs,
     logger: ruLogger,
     profiles: ruProfiles,
-    settings: ruSettings
+    settings: ruSettings,
+    teamGames: ruTeamGames
   }
 } satisfies Record<AppLanguage, Record<string, unknown>>
 

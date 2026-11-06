@@ -1,4 +1,5 @@
 import { computed, ref } from 'vue'
+import type { TeamGameConfig } from '../../../shared/contracts/team-games.contracts'
 import { createDefaultConfig } from '../../../shared/config/default-config'
 import { setI18nLanguage, translate } from '../i18n'
 import type {
@@ -209,6 +210,16 @@ export const useAppConfig = () => {
     addStreamProfile,
     updateStreamProfile,
     deleteStreamProfile,
-    resetConfig
+    resetConfig,
+    saveTeamGame: (game: TeamGameConfig) =>
+      runConfigOperation(
+        () => window.vrControl.teamGames.save(game),
+        translate('teamGames.errors.save')
+      ),
+    deleteTeamGame: (id: string) =>
+      runConfigOperation(
+        () => window.vrControl.teamGames.remove(id),
+        translate('teamGames.errors.remove')
+      )
   }
 }

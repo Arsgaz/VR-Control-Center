@@ -4,6 +4,7 @@ export const HEADSET_IPC_CHANNELS = {
   connectDevice: 'headset:connect-device',
   disconnectDevice: 'headset:disconnect-device',
   refreshRuntime: 'headset:refresh-runtime',
+  syncTime: 'headset:sync-time',
   startScrcpy: 'headset:start-scrcpy',
   stopScrcpy: 'headset:stop-scrcpy',
   getScrcpyStatus: 'headset:get-scrcpy-status',
@@ -94,12 +95,7 @@ export interface ScrcpyProcessEvent {
 }
 
 export type DeviceConnectionState =
-  | 'unknown'
-  | 'connected'
-  | 'disconnected'
-  | 'offline'
-  | 'unauthorized'
-  | 'error'
+  'unknown' | 'connected' | 'disconnected' | 'offline' | 'unauthorized' | 'error'
 
 export type BatteryStatus = 'unknown' | 'charging' | 'discharging' | 'not-charging' | 'full' | null
 
@@ -132,6 +128,25 @@ export interface DeviceRuntimeResult {
   message: string
 }
 
+export type DeviceTimeSyncError =
+  | 'DEVICE_NOT_FOUND'
+  | 'NOT_CONNECTED'
+  | 'PERMISSION_DENIED'
+  | 'SET_FAILED'
+  | 'VERIFY_FAILED'
+  | 'COMMAND_FAILED'
+  | 'SUPERSEDED'
+
+export type DeviceTimeSyncResult =
+  | {
+      ok: true
+      address: string
+      computerTimeMs: number
+      deviceTimeMs: number
+      differenceMs: number
+    }
+  | { ok: false; code: DeviceTimeSyncError }
+
 export interface DeviceRuntimeEvent {
   type: 'runtime' | 'connection' | 'stream'
   deviceId: string
@@ -146,6 +161,7 @@ export interface HeadsetApi {
   connectDevice: (deviceId: string) => Promise<DeviceRuntimeResult>
   disconnectDevice: (deviceId: string) => Promise<DeviceRuntimeResult>
   refreshRuntime: (deviceId: string) => Promise<DeviceRuntimeResult>
+  syncTime: (deviceId: string) => Promise<DeviceTimeSyncResult>
   startScrcpy: (deviceId: string) => Promise<ScrcpyStartResult>
   stopScrcpy: (deviceId: string) => Promise<ScrcpyStopResult>
   getScrcpyStatus: (deviceId: string) => Promise<ScrcpyStatus>

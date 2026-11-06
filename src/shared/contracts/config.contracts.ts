@@ -1,3 +1,5 @@
+import type { TeamGameConfig } from './team-games.contracts'
+
 export const CONFIG_SCHEMA_VERSION = 1
 
 export const CONFIG_IPC_CHANNELS = {
@@ -59,7 +61,7 @@ export interface UserSettingsConfig {
 }
 
 export type AppLanguage = 'en' | 'ru'
-export type ToolBinarySource = 'system' | 'bundled' | 'custom'
+export type ToolBinarySource = 'auto' | 'system' | 'bundled' | 'custom'
 export type CloseBehavior = 'quit' | 'minimizeToTray' | 'ask'
 export type UserSettingsUpdate = Partial<UserSettingsConfig>
 
@@ -74,6 +76,7 @@ export interface AppConfig {
   version: typeof CONFIG_SCHEMA_VERSION
   application: ApplicationConfig
   devices: DeviceConfig[]
+  teamGames: TeamGameConfig[]
   streamProfiles: StreamProfileConfig[]
   settings: UserSettingsConfig
   logger: LoggerConfig
@@ -113,6 +116,9 @@ export interface ConfigurationApi {
   updateLanguage: (language: AppLanguage) => Promise<ConfigurationResult>
   updateSettings: (changes: UserSettingsUpdate) => Promise<ConfigurationResult>
   addStreamProfile: (profile: NewStreamProfileConfig) => Promise<ConfigurationResult>
-  updateStreamProfile: (id: string, changes: StreamProfileConfigUpdate) => Promise<ConfigurationResult>
+  updateStreamProfile: (
+    id: string,
+    changes: StreamProfileConfigUpdate
+  ) => Promise<ConfigurationResult>
   deleteStreamProfile: (id: string) => Promise<ConfigurationResult>
 }

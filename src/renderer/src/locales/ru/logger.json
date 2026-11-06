@@ -1,10 +1,10 @@
 {
   "title": {
     "label": "Журнал оператора",
-    "expanded": "Пользовательский журнал",
-    "collapsed": "Журнал ({count})"
+    "expanded": "Журнал событий",
+    "collapsed": "Журнал"
   },
-  "empty": "Пользовательских событий пока нет.",
+  "empty": "Событий пока нет",
   "device": "Устройство: {id}",
   "events": {
     "configurationReset": "Конфигурация сброшена к значениям по умолчанию.",
@@ -39,5 +39,12 @@
     "disconnectTroubleshooting": "Проверьте состояние ADB и повторите попытку.",
     "streamStartTroubleshooting": "Проверьте scrcpy, ADB-подключение и параметры запуска.",
     "streamStopTroubleshooting": "Проверьте состояние процесса scrcpy."
+  },
+  "errorCount": "Ошибок: {count}",
+  "levels": {
+    "info": "Инфо",
+    "success": "Готово",
+    "warning": "Внимание",
+    "error": "Ошибка"
   }
 }

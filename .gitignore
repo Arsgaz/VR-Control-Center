@@ -1,6 +1,7 @@
 node_modules
 out
 dist
+resources/tools/win32-x64
 *.log
 *.tsbuildinfo
 .DS_Store

@@ -28,28 +28,54 @@ export const runCommand = (
     const stdout: Buffer[] = []
     const stderr: Buffer[] = []
     let didTimeout = false
+    let settled = false
+    let forceKillTimer: NodeJS.Timeout | undefined
+    let deadline: NodeJS.Timeout | undefined
+    const timeoutError = () => new Error(`${executable} timed out after ${options.timeoutMs}ms`)
+    const cleanup = (): void => {
+      clearTimeout(timeout)
+      clearTimeout(forceKillTimer)
+      clearTimeout(deadline)
+    }
 
     const timeout = setTimeout(() => {
       didTimeout = true
+      // Normally close settles the command. Bound the wait even if close never arrives.
+      forceKillTimer = setTimeout(() => child.kill('SIGKILL'), 1_000)
+      deadline = setTimeout(() => {
+        if (settled) return
+        settled = true
+        cleanup()
+        child.stdout?.destroy()
+        child.stderr?.destroy()
+        child.unref()
+        reject(timeoutError())
+      }, 2_000)
       child.kill()
     }, options.timeoutMs)
 
     child.stdout?.on('data', (chunk: Buffer) => {
-      stdout.push(chunk)
+      if (!settled) stdout.push(chunk)
     })
 
     child.stderr?.on('data', (chunk: Buffer) => {
-      stderr.push(chunk)
+      if (!settled) stderr.push(chunk)
     })
 
     child.on('error', (error) => {
-      clearTimeout(timeout)
+      // kill errors do not imply that an already-spawned process has exited.
+      if (didTimeout && child.pid !== undefined) return
+      if (settled) return
+      settled = true
+      cleanup()
       logger.errorWithCause('Short-lived command failed to start', error, { executable, args })
       reject(error)
     })
 
     child.on('close', (exitCode, signal) => {
-      clearTimeout(timeout)
+      if (settled) return
+      settled = true
+      cleanup()
 
       const result = {
         exitCode,
@@ -59,7 +85,7 @@ export const runCommand = (
       }
 
       if (didTimeout) {
-        const error = new Error(`${executable} timed out after ${options.timeoutMs}ms`)
+        const error = timeoutError()
         logger.warn('Short-lived command timed out', {
           executable,
           args,

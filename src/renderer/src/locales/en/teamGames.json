@@ -1,0 +1,33 @@
+{
+  "title": "Team games",
+  "description": "Games and servers on this PC. Launch your usual shortcuts directly from the control center.",
+  "add": "Add game",
+  "edit": "Edit game",
+  "editNamed": "Edit {name}",
+  "local": "On this PC",
+  "defaultDescription": "Arena game or server",
+  "emptyTitle": "Team play starts here",
+  "emptyDescription": "Add shortcuts to your franchise games and servers. Each game gets its own launch card.",
+  "name": "Name",
+  "namePlaceholder": "For example, the franchise name",
+  "gameDescription": "Description · optional",
+  "descriptionPlaceholder": "Game mode, player count or a note for the operator",
+  "shortcut": "Game or server shortcut",
+  "shortcutPlaceholder": "Choose a file on this computer",
+  "choose": "Browse…",
+  "shortcutHint": "Choose the shortcut you normally use to start the game. Its arguments and working directory are preserved. Windows also supports .exe, .bat and .cmd.",
+  "launching": "Launching…",
+  "requested": "Launch requested. Wait for the game or server to open.",
+  "saved": "Game “{name}” saved.",
+  "discard": "Close the editor without saving changes?",
+  "confirmRemove": "Remove “{name}” from team games? The shortcut and game will stay on your computer.",
+  "errors": {
+    "save": "Could not save the game. Check that the shortcut exists and can be opened on this computer.",
+    "remove": "Could not remove the game. Wait for the launch to finish and try again.",
+    "select": "Could not open the file picker. Try again.",
+    "NOT_FOUND": "This game no longer exists. Reopen the section.",
+    "INVALID_SHORTCUT": "Shortcut unavailable. Click Edit and choose an existing file.",
+    "ALREADY_LAUNCHING": "Launch already requested. Please wait a few seconds.",
+    "LAUNCH_FAILED": "The system could not open this shortcut. Check that it launches manually."
+  }
+}

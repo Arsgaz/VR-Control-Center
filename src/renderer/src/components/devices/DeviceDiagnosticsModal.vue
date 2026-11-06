@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { DeviceConfig, StreamProfileConfig } from '../../../../shared/contracts/config.contracts'
+import AppModal from '../ui/AppModal.vue'
+import type {
+  DeviceConfig,
+  StreamProfileConfig
+} from '../../../../shared/contracts/config.contracts'
 import type { DeviceRuntimeState } from '../../../../shared/contracts/headset.contracts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -47,7 +51,7 @@ const applicationLabel = computed(() => {
 </script>
 
 <template>
-  <div class="modal-backdrop" role="presentation" @click.self="$emit('close')">
+  <AppModal labelledby="device-diagnostics-title" wide @close="$emit('close')">
     <section class="modal-panel diagnostics-panel" aria-labelledby="device-diagnostics-title">
       <div class="card-header">
         <div>
@@ -123,19 +127,12 @@ const applicationLabel = computed(() => {
         </div>
       </dl>
 
-      <section class="future-diagnostics">
-        <p class="section-label">{{ t('devices.diagnostics.preparedTitle') }}</p>
-        <p class="muted-text">
-          {{ t('devices.diagnostics.preparedDescription') }}
-        </p>
-      </section>
-
       <div class="modal-actions">
         <button type="button" class="secondary-button" @click="$emit('close')">
           {{ t('common.actions.close') }}
         </button>
       </div>
     </section>
-  </div>
+  </AppModal>
 </template>
 import { useI18n } from 'vue-i18n'

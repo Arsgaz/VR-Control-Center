@@ -71,4 +71,7 @@ export const registerDeviceHandlers = ({
     logger.debug('IPC headset:refresh-runtime started', { deviceId: assertedDeviceId })
     return runtimeManager.refreshRuntime(assertedDeviceId)
   })
+  ipcMain.handle(HEADSET_IPC_CHANNELS.syncTime, (_, deviceId: string) =>
+    runtimeManager.syncTime(assertDeviceId(deviceId))
+  )
 }

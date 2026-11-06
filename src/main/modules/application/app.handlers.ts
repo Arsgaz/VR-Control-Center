@@ -1,4 +1,5 @@
 import { app, dialog, ipcMain, shell } from 'electron'
+import { getBundledToolsDirectory } from '@main/infrastructure/binaries/binary-resolver'
 import {
   APP_IPC_CHANNELS,
   type AppInfo,
@@ -6,7 +7,11 @@ import {
   type TechnicalLogInfo,
   type ToolBinaryKind
 } from '@shared/contracts/app.contracts'
-import { clearOldTechnicalLogs, getTechnicalLogInfo, logger } from '@main/infrastructure/logging/logger'
+import {
+  clearOldTechnicalLogs,
+  getTechnicalLogInfo,
+  logger
+} from '@main/infrastructure/logging/logger'
 
 const normalizePlatform = (platform: NodeJS.Platform): AppInfo['platform'] => {
   if (platform === 'win32' || platform === 'darwin' || platform === 'linux') {
@@ -24,7 +29,8 @@ export const registerApplicationHandlers = (): void => {
       platform: normalizePlatform(process.platform),
       arch: process.arch,
       electronVersion: process.versions.electron,
-      nodeVersion: process.versions.node
+      nodeVersion: process.versions.node,
+      bundledToolsDirectory: getBundledToolsDirectory()
     }
     logger.debug('IPC app:get-info completed', { platform: appInfo.platform, arch: appInfo.arch })
     return appInfo

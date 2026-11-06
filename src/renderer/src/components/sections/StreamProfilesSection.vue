@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import AppModal from '../ui/AppModal.vue'
 import { useI18n } from 'vue-i18n'
 import type { StreamProfileConfig } from '../../../../shared/contracts/config.contracts'
 import { useHeadsetController } from '../../composables/useHeadsetController'
@@ -31,17 +32,40 @@ const selectedProfile = computed(() => {
 })
 
 const serializedInitialDraft = ref(JSON.stringify(draft.value))
-const hasUnsavedChanges = computed(() => JSON.stringify(draft.value) !== serializedInitialDraft.value)
+const hasUnsavedChanges = computed(
+  () => JSON.stringify(draft.value) !== serializedInitialDraft.value
+)
 
-const fieldLabel = (key: string, technicalName: string): string => {
-  return `${t(`profiles.fields.${key}`)} (${technicalName})`
+const savedNotice = ref(false)
+const qualityPresets = [
+  { id: 'economy', maxSize: '1024', maxFps: '30', videoBitRate: '4M' },
+  { id: 'balanced', maxSize: '1280', maxFps: '30', videoBitRate: '6M' },
+  { id: 'quality', maxSize: '1920', maxFps: '60', videoBitRate: '12M' }
+]
+const applyPreset = (preset: (typeof qualityPresets)[number]): void => {
+  draft.value = {
+    ...draft.value,
+    maxSize: preset.maxSize,
+    maxFps: preset.maxFps,
+    videoBitRate: preset.videoBitRate
+  }
 }
-
-const bitratePresets = ['4M', '6M', '8M', '12M']
+const matchesPreset = (preset: (typeof qualityPresets)[number]): boolean => {
+  return (
+    draft.value.maxSize === preset.maxSize &&
+    draft.value.maxFps === preset.maxFps &&
+    draft.value.videoBitRate === preset.videoBitRate
+  )
+}
+defineExpose({
+  confirmLeave: (): boolean =>
+    !hasUnsavedChanges.value || window.confirm(t('profiles.unsaved.leave'))
+})
 
 const resetDraftTracking = (): void => {
   serializedInitialDraft.value = JSON.stringify(draft.value)
   submitAttempted.value = false
+  savedNotice.value = false
 }
 
 const selectProfileImmediately = (profile: StreamProfileConfig | null): void => {
@@ -78,7 +102,8 @@ const validationMessage = computed(() => {
 
 const usedDeviceCount = computed(() => {
   if (!selectedProfile.value) return 0
-  return devices.value.filter((device) => device.streamProfileId === selectedProfile.value?.id).length
+  return devices.value.filter((device) => device.streamProfileId === selectedProfile.value?.id)
+    .length
 })
 
 const previewArgs = computed(() => {
@@ -110,6 +135,7 @@ const startCreate = (): void => {
 }
 
 const saveDraft = async (): Promise<boolean> => {
+  if (headset.isConfigLoading.value) return false
   submitAttempted.value = true
   if (validationKey.value) {
     return false
@@ -137,6 +163,7 @@ const saveDraft = async (): Promise<boolean> => {
   isCreating.value = false
   draft.value = createDraftFromProfile(payload)
   resetDraftTracking()
+  savedNotice.value = true
   return true
 }
 
@@ -199,242 +226,257 @@ const discardAndSwitch = (): void => {
 </script>
 
 <template>
-  <section class="section-content" aria-labelledby="profiles-title">
+  <section class="section-content profiles-section" aria-labelledby="profiles-title">
     <div class="section-heading">
-      <p class="section-label">{{ t('profiles.label') }}</p>
       <h2 id="profiles-title">{{ t('profiles.title') }}</h2>
-      <p class="muted-text">
-        {{ t('profiles.description') }}
-      </p>
+      <p class="muted-text">{{ t('profiles.description') }}</p>
     </div>
-
     <div class="profiles-layout">
-      <aside class="profile-list-panel info-card">
+      <aside class="profile-list-panel">
         <div class="card-header">
-          <div>
-            <p class="section-label">{{ t('profiles.list.title') }}</p>
-            <h3>{{ profiles.length }}</h3>
-          </div>
-          <button type="button" class="primary-button compact-button" @click="startCreate">
-            {{ t('profiles.list.add') }}
+          <h3>
+            {{ t('profiles.list.title') }} <span class="count-badge">{{ profiles.length }}</span>
+          </h3>
+          <button
+            type="button"
+            class="text-button"
+            :disabled="headset.isConfigLoading.value"
+            @click="startCreate"
+          >
+            + {{ t('common.actions.add') }}
           </button>
         </div>
-
-        <div v-if="profiles.length === 0" class="empty-profile-list">
-          <h3>{{ t('profiles.list.emptyTitle') }}</h3>
-          <p class="muted-text">{{ t('profiles.list.emptyDescription') }}</p>
-        </div>
-
-        <div v-else class="profile-list">
+        <p v-if="!profiles.length" class="muted-text">{{ t('profiles.list.emptyDescription') }}</p>
+        <div class="profile-list">
           <button
             v-for="profile in profiles"
             :key="profile.id"
             type="button"
             class="profile-list-item"
             :class="{ active: profile.id === selectedProfileId && !isCreating }"
+            :aria-pressed="profile.id === selectedProfileId && !isCreating"
+            :disabled="headset.isConfigLoading.value"
             @click="requestProfileSelection(profile.id)"
           >
-            <span>{{ profile.name }}</span>
-            <small>{{ profile.videoCodec.toUpperCase() }} · {{ profile.videoBitRate || '—' }}</small>
+            <span>{{ profile.name }}</span
+            ><small
+              >{{ profile.maxSize ?? '∞' }} px · {{ profile.maxFps ?? '∞' }} FPS ·
+              {{ profile.videoBitRate || '—' }}</small
+            >
           </button>
         </div>
       </aside>
-
       <form class="profile-editor info-card" @submit.prevent="saveDraft">
         <div class="card-header">
           <div>
-            <p class="section-label">
-              {{ isCreating ? t('profiles.editor.createTitle') : t('profiles.editor.editTitle') }}
-            </p>
-            <h3>
-              {{
-                isCreating || selectedProfile
-                  ? draft.name || t('profiles.editor.createTitle')
-                  : t('profiles.editor.noSelectionTitle')
-              }}
-            </h3>
+            <h3>{{ draft.name || t('profiles.editor.createTitle') }}</h3>
+            <p class="field-hint">{{ t('profiles.editor.appliesNext') }}</p>
           </div>
-          <span v-if="hasUnsavedChanges" class="unsaved-badge">
-            {{ t('profiles.editor.unsaved') }}
-          </span>
+          <span v-if="hasUnsavedChanges" class="unsaved-badge">{{
+            t('profiles.editor.unsaved')
+          }}</span
+          ><span v-else-if="savedNotice" class="saved-notice" role="status"
+            >✓ {{ t('profiles.editor.saved') }}</span
+          >
         </div>
-
         <p v-if="!isCreating && !selectedProfile" class="muted-text">
           {{ t('profiles.editor.noSelectionDescription') }}
         </p>
-
         <template v-else>
-          <section class="profile-form-section">
-            <h4>{{ t('profiles.sections.general') }}</h4>
-            <label class="profile-field">
-              <span>{{ fieldLabel('name', 'name') }}</span>
-              <input
-                v-model="draft.name"
-                type="text"
-                autocomplete="off"
-                :placeholder="t('profiles.placeholders.name')"
-              />
-              <small>{{ t('profiles.hints.name') }}</small>
-            </label>
-
-            <label class="profile-field">
-              <span>{{ fieldLabel('description', 'description') }}</span>
-              <textarea
-                v-model="draft.description"
-                rows="3"
-                :placeholder="t('profiles.placeholders.description')"
-              />
-              <small>{{ t('profiles.hints.description') }}</small>
-            </label>
-          </section>
-
-          <section class="profile-form-section">
-            <h4>{{ t('profiles.sections.geometry') }}</h4>
+          <fieldset class="profile-fields" :disabled="headset.isConfigLoading.value">
             <div class="profile-field-grid">
-              <label class="profile-field">
-                <span>{{ fieldLabel('crop', 'crop') }}</span>
-                <input
-                  v-model="draft.crop"
+              <label class="profile-field"
+                ><span>{{ t('profiles.fields.name') }}</span
+                ><input
+                  v-model="draft.name"
                   type="text"
                   autocomplete="off"
-                  :placeholder="t('profiles.placeholders.crop')"
-                />
-                <small>{{ t('profiles.hints.crop') }}</small>
-              </label>
-
-              <label class="profile-field">
-                <span>{{ fieldLabel('maxSize', 'maxSize') }}</span>
-                <select v-model="draft.maxSize">
+                  :aria-invalid="submitAttempted && validationKey === 'nameRequired'"
+                  :placeholder="t('profiles.placeholders.name')"
+              /></label>
+              <label class="profile-field"
+                ><span>{{ t('profiles.fields.description') }}</span
+                ><input
+                  v-model="draft.description"
+                  type="text"
+                  :placeholder="t('profiles.placeholders.description')"
+              /></label>
+            </div>
+            <section class="profile-form-section">
+              <h4>{{ t('profiles.presets.title') }}</h4>
+              <div class="quality-presets">
+                <button
+                  v-for="preset in qualityPresets"
+                  :key="preset.id"
+                  type="button"
+                  class="quality-preset"
+                  :class="{ active: matchesPreset(preset) }"
+                  :aria-pressed="matchesPreset(preset)"
+                  @click="applyPreset(preset)"
+                >
+                  <strong>{{ t(`profiles.presets.${preset.id}`) }}</strong
+                  ><span>{{ preset.maxSize }} px · {{ preset.maxFps }} FPS</span
+                  ><small>{{ t(`profiles.presets.${preset.id}Hint`) }}</small>
+                </button>
+              </div>
+            </section>
+            <div class="profile-field-grid video-settings">
+              <label class="profile-field"
+                ><span>{{ t('profiles.fields.maxSize') }}</span
+                ><select v-model="draft.maxSize">
                   <option value="">{{ t('profiles.options.unlimited') }}</option>
-                  <option value="1024">1024</option>
-                  <option value="1280">1280</option>
-                  <option value="1600">1600</option>
-                  <option value="1920">1920</option>
-                </select>
-                <small>{{ t('profiles.hints.maxSize') }}</small>
-              </label>
-            </div>
-          </section>
-
-          <section class="profile-form-section">
-            <h4>{{ t('profiles.sections.video') }}</h4>
-            <div class="profile-video-grid">
-              <div class="profile-video-column">
-                <label class="profile-field">
-                  <span>{{ fieldLabel('maxFps', 'maxFps') }}</span>
-                  <select v-model="draft.maxFps">
-                    <option value="">{{ t('profiles.options.unlimited') }}</option>
-                    <option value="30">30</option>
-                    <option value="60">60</option>
-                    <option value="72">72</option>
-                    <option value="90">90</option>
-                  </select>
-                  <small>{{ t('profiles.hints.maxFps') }}</small>
-                </label>
-
-                <label class="profile-field">
-                  <span>{{ fieldLabel('videoCodec', 'videoCodec') }}</span>
-                  <select v-model="draft.videoCodec">
-                    <option value="h264">{{ t('profiles.options.h264') }}</option>
-                    <option value="h265">{{ t('profiles.options.h265') }}</option>
-                  </select>
-                  <small>{{ t('profiles.hints.videoCodec') }}</small>
-                </label>
-              </div>
-
-              <div class="profile-video-column">
-                <label class="profile-field">
-                <span>{{ fieldLabel('videoBitRate', 'videoBitRate') }}</span>
-                <input
-                  v-model="draft.videoBitRate"
-                  autocomplete="off"
-                  :placeholder="t('profiles.placeholders.videoBitRate')"
-                />
-                <div class="profile-preset-row" :aria-label="t('profiles.options.bitratePresets')">
-                  <button
-                    v-for="preset in bitratePresets"
-                    :key="preset"
-                    type="button"
-                    class="preset-button"
-                    :class="{ active: draft.videoBitRate === preset }"
-                    @click="draft.videoBitRate = preset"
+                  <option
+                    v-if="
+                      draft.maxSize && !['1024', '1280', '1600', '1920'].includes(draft.maxSize)
+                    "
+                    :value="draft.maxSize"
                   >
-                    {{ preset }}
-                  </button>
-                </div>
-                <small>{{ t('profiles.hints.videoBitRate') }}</small>
-                </label>
+                    {{ draft.maxSize }} px
+                  </option>
+                  <option
+                    v-for="size in ['1024', '1280', '1600', '1920']"
+                    :key="size"
+                    :value="size"
+                  >
+                    {{ size }} px
+                  </option>
+                </select></label
+              >
+              <label class="profile-field"
+                ><span>{{ t('profiles.fields.maxFps') }}</span
+                ><select v-model="draft.maxFps">
+                  <option value="">{{ t('profiles.options.unlimited') }}</option>
+                  <option
+                    v-if="draft.maxFps && !['30', '60', '72', '90'].includes(draft.maxFps)"
+                    :value="draft.maxFps"
+                  >
+                    {{ draft.maxFps }} FPS
+                  </option>
+                  <option v-for="fps in ['30', '60', '72', '90']" :key="fps" :value="fps">
+                    {{ fps }} FPS
+                  </option>
+                </select></label
+              >
+              <label class="profile-field"
+                ><span>{{ t('profiles.fields.videoBitRate') }}</span
+                ><input
+                  v-model="draft.videoBitRate"
+                  :placeholder="t('profiles.placeholders.videoBitRate')"
+                /><small>{{ t('profiles.hints.videoBitRate') }}</small></label
+              >
+              <label class="profile-toggle audio-toggle"
+                ><input v-model="draft.noAudio" type="checkbox" /><span>{{
+                  t('profiles.fields.noAudio')
+                }}</span></label
+              >
+            </div>
+            <details
+              class="advanced-settings"
+              :open="submitAttempted && validationKey === 'cropFormat'"
+            >
+              <summary>{{ t('profiles.sections.advanced') }}</summary>
+              <div class="profile-field-grid">
+                <label class="profile-field"
+                  ><span>{{ t('profiles.fields.crop') }}</span
+                  ><input
+                    v-model="draft.crop"
+                    :placeholder="t('profiles.placeholders.crop')"
+                  /><small>{{ t('profiles.hints.crop') }}</small></label
+                >
+                <label class="profile-field"
+                  ><span>{{ t('profiles.fields.videoCodec') }}</span
+                  ><select v-model="draft.videoCodec">
+                    <option value="h264">H.264</option>
+                    <option value="h265">H.265</option></select
+                  ><small>{{ t('profiles.hints.videoCodec') }}</small></label
+                >
               </div>
-            </div>
-          </section>
-
-          <section class="profile-form-section">
-            <h4>{{ t('profiles.sections.audio') }}</h4>
-            <label class="toggle-row profile-toggle">
-              <input v-model="draft.noAudio" type="checkbox" />
-              <span>{{ fieldLabel('noAudio', 'noAudio') }}</span>
-            </label>
-            <p class="field-hint">{{ t('profiles.hints.noAudio') }}</p>
-          </section>
-
-          <section class="profile-form-section">
-            <h4>{{ t('profiles.sections.preview') }}</h4>
-            <div class="command-preview" aria-live="polite">
-              <code>scrcpy</code>
-              <code v-for="(arg, index) in previewArgs" :key="`${arg}-${index}`">{{ arg }}</code>
-            </div>
-          </section>
-
-          <p v-if="submitAttempted && validationMessage" class="state-message error-message">
+              <details class="command-details">
+                <summary>{{ t('profiles.sections.preview') }}</summary>
+                <div class="command-preview">
+                  <code>scrcpy {{ previewArgs.join(' ') }}</code>
+                </div>
+              </details>
+            </details>
+          </fieldset>
+          <p
+            v-if="submitAttempted && validationMessage"
+            class="state-message error-message"
+            role="alert"
+          >
             {{ validationMessage }}
           </p>
-
           <div class="profile-actions">
-            <button type="submit" class="primary-button" :disabled="headset.isConfigLoading.value">
-              {{ t('common.actions.save') }}
+            <button
+              type="button"
+              class="text-button danger-text"
+              :disabled="headset.isConfigLoading.value || isCreating || !selectedProfile"
+              @click="deleteProfile"
+            >
+              {{ t('common.actions.delete') }}
             </button>
             <button
               type="button"
               class="secondary-button"
-              :disabled="isCreating || !selectedProfile"
+              :disabled="
+                headset.isConfigLoading.value || isCreating || !selectedProfile || hasUnsavedChanges
+              "
+              :title="hasUnsavedChanges ? t('profiles.editor.saveBeforeDuplicate') : undefined"
               @click="duplicateProfile"
             >
               {{ t('common.actions.duplicate') }}
             </button>
             <button
-              type="button"
-              class="danger-button"
-              :disabled="isCreating || !selectedProfile"
-              @click="deleteProfile"
+              type="submit"
+              class="primary-button"
+              :disabled="headset.isConfigLoading.value || (!hasUnsavedChanges && !isCreating)"
             >
-              {{ t('common.actions.delete') }}
+              {{
+                headset.isConfigLoading.value
+                  ? t('common.actions.saving')
+                  : t('common.actions.save')
+              }}
             </button>
           </div>
         </template>
       </form>
     </div>
-
-    <div v-if="showUnsavedDialog" class="modal-backdrop" role="presentation">
-      <section class="modal-panel" aria-labelledby="unsaved-profile-title">
-        <div class="card-header">
-          <div>
-            <p class="section-label">{{ t('profiles.unsaved.title') }}</p>
-            <h3 id="unsaved-profile-title">{{ t('profiles.unsaved.description') }}</h3>
-          </div>
-        </div>
-
+    <AppModal
+      v-if="showUnsavedDialog"
+      labelledby="unsaved-profile-title"
+      :busy="headset.isConfigLoading.value"
+      @close="pendingProfileId = null"
+    >
+      <section class="modal-panel">
+        <h3 id="unsaved-profile-title">{{ t('profiles.unsaved.title') }}</h3>
+        <p class="muted-text">{{ t('profiles.unsaved.description') }}</p>
         <div class="modal-actions">
-          <button type="button" class="secondary-button" @click="pendingProfileId = null">
+          <button
+            type="button"
+            class="text-button"
+            :disabled="headset.isConfigLoading.value"
+            @click="pendingProfileId = null"
+          >
             {{ t('profiles.unsaved.cancel') }}
           </button>
-          <button type="button" class="secondary-button" @click="discardAndSwitch">
+          <button
+            type="button"
+            class="secondary-button"
+            :disabled="headset.isConfigLoading.value"
+            @click="discardAndSwitch"
+          >
             {{ t('profiles.unsaved.discard') }}
           </button>
-          <button type="button" class="primary-button" @click="saveAndSwitch">
+          <button
+            type="button"
+            class="primary-button"
+            :disabled="headset.isConfigLoading.value"
+            @click="saveAndSwitch"
+          >
             {{ t('profiles.unsaved.save') }}
           </button>
         </div>
       </section>
-    </div>
+    </AppModal>
   </section>
 </template>

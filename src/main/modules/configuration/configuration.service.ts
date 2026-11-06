@@ -1,4 +1,5 @@
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { randomUUID } from 'node:crypto'
 import { dirname, join } from 'node:path'
 import { app } from 'electron'
 import { createDefaultConfig, resolveLanguageFromLocale } from '@shared/config/default-config'
@@ -41,6 +42,22 @@ const normalizeProfileName = (name: string): string => {
 
 export class ConfigurationService {
   private config: AppConfig | null = null
+  private readonly listeners = new Set<(config: AppConfig) => void>()
+
+  public onDidChange(listener: (config: AppConfig) => void): () => void {
+    this.listeners.add(listener)
+    return () => {
+      this.listeners.delete(listener)
+    }
+  }
+
+  private pending: Promise<unknown> = Promise.resolve()
+
+  private enqueue<T>(operation: () => Promise<T>): Promise<T> {
+    const result = this.pending.then(operation)
+    this.pending = result.catch(() => undefined)
+    return result
+  }
 
   public constructor(
     private readonly directoryProvider = (): string => app.getPath('userData'),
@@ -62,7 +79,11 @@ export class ConfigurationService {
     }
   }
 
-  public async load(): Promise<ConfigurationState> {
+  public load(): Promise<ConfigurationState> {
+    return this.enqueue(() => (this.config ? Promise.resolve(this.get()) : this.loadFromDisk()))
+  }
+
+  private async loadFromDisk(): Promise<ConfigurationState> {
     const fileInfo = this.getFileInfo()
     logger.info('Loading configuration', { file: fileInfo.file })
     await mkdir(fileInfo.directory, { recursive: true })
@@ -76,10 +97,11 @@ export class ConfigurationService {
         throw new Error('Configuration schema is invalid')
       }
 
-      this.config = normalizedConfig
       if (rawConfig !== serializeConfig(normalizedConfig)) {
         logger.info('Saving normalized configuration after load', { file: fileInfo.file })
-        await this.save(normalizedConfig)
+        await this.persist(normalizedConfig)
+      } else {
+        this.config = normalizedConfig
       }
 
       logger.info('Configuration loaded', {
@@ -93,22 +115,31 @@ export class ConfigurationService {
         logger.info('Configuration file does not exist; creating default configuration', {
           file: fileInfo.file
         })
-        this.config = this.createDefaultConfigForSystemLocale()
-        await this.save(this.config)
+        await this.persist(this.createDefaultConfigForSystemLocale())
         return this.get()
+      }
+
+      if (
+        !(error instanceof SyntaxError) &&
+        !(error instanceof Error && error.message === 'Configuration schema is invalid')
+      ) {
+        throw error
       }
 
       logger.errorWithCause('Configuration load failed; restoring defaults', error, {
         file: fileInfo.file
       })
       await this.backupCorruptedConfig(fileInfo.file)
-      this.config = this.createDefaultConfigForSystemLocale()
-      await this.save(this.config)
+      await this.persist(this.createDefaultConfigForSystemLocale())
       return this.get()
     }
   }
 
-  public async save(config = this.requireConfig()): Promise<ConfigurationState> {
+  public save(config?: AppConfig): Promise<ConfigurationState> {
+    return this.enqueue(() => this.persist(config ?? this.requireConfig()))
+  }
+
+  private async persist(config: AppConfig): Promise<ConfigurationState> {
     const normalizedConfig = normalizeAppConfig(config)
     if (!normalizedConfig) {
       logger.warn('Configuration save rejected: invalid schema')
@@ -123,14 +154,25 @@ export class ConfigurationService {
     })
     await mkdir(dirname(fileInfo.file), { recursive: true })
 
+    const temporaryFile = `${fileInfo.file}.${randomUUID()}.tmp`
     try {
-      await writeFile(fileInfo.file, serializeConfig(normalizedConfig), 'utf8')
+      await writeFile(temporaryFile, serializeConfig(normalizedConfig), 'utf8')
+      await rename(temporaryFile, fileInfo.file)
       this.config = normalizedConfig
+      for (const listener of this.listeners) {
+        try {
+          listener(normalizedConfig)
+        } catch (error) {
+          logger.errorWithCause('Configuration change listener failed', error)
+        }
+      }
       logger.info('Configuration saved', { file: fileInfo.file })
       return this.get()
     } catch (error) {
       logger.errorWithCause('Configuration save failed', error, { file: fileInfo.file })
       throw new Error('Configuration could not be saved')
+    } finally {
+      await rm(temporaryFile, { force: true }).catch(() => undefined)
     }
   }
 
@@ -142,17 +184,19 @@ export class ConfigurationService {
   }
 
   public async update(updater: (config: AppConfig) => AppConfig): Promise<ConfigurationState> {
-    const currentConfig = this.requireConfig()
-    const nextConfig = updater(structuredClone(currentConfig))
+    return this.enqueue(async () => {
+      const currentConfig = this.requireConfig()
+      const nextConfig = updater(structuredClone(currentConfig))
 
-    const normalizedConfig = normalizeAppConfig(nextConfig)
-    if (!normalizedConfig) {
-      logger.warn('Configuration update rejected: invalid schema')
-      throw new Error('Configuration schema is invalid')
-    }
+      const normalizedConfig = normalizeAppConfig(nextConfig)
+      if (!normalizedConfig) {
+        logger.warn('Configuration update rejected: invalid schema')
+        throw new Error('Configuration schema is invalid')
+      }
 
-    logger.info('Updating configuration')
-    return this.save(normalizedConfig)
+      logger.info('Updating configuration')
+      return this.persist(normalizedConfig)
+    })
   }
 
   public async addDevice(device: NewDeviceConfig): Promise<ConfigurationState> {
@@ -197,10 +241,7 @@ export class ConfigurationService {
     })
   }
 
-  public async updateDevice(
-    id: string,
-    changes: DeviceConfigUpdate
-  ): Promise<ConfigurationState> {
+  public async updateDevice(id: string, changes: DeviceConfigUpdate): Promise<ConfigurationState> {
     if (!id.trim() || !isDeviceConfigUpdate(changes)) {
       throw new Error('Device update payload is invalid')
     }
@@ -226,9 +267,7 @@ export class ConfigurationService {
         }
 
         if (
-          config.devices.some(
-            (device) => device.id !== id && device.address.trim() === nextAddress
-          )
+          config.devices.some((device) => device.id !== id && device.address.trim() === nextAddress)
         ) {
           throw new Error(`Device address already exists: ${nextAddress}`)
         }
@@ -402,7 +441,8 @@ export class ConfigurationService {
         nextName !== undefined &&
         config.streamProfiles.some(
           (profile) =>
-            profile.id !== id && normalizeProfileName(profile.name) === normalizeProfileName(nextName)
+            profile.id !== id &&
+            normalizeProfileName(profile.name) === normalizeProfileName(nextName)
         )
       ) {
         throw new Error(`Stream profile name already exists: ${nextName}`)
@@ -464,10 +504,11 @@ export class ConfigurationService {
 
   public async resetToDefault(): Promise<ConfigurationState> {
     logger.warn('Resetting configuration to defaults')
-    this.config = this.createDefaultConfigForSystemLocale()
-    const state = await this.save(this.config)
-    applyLoggerSettings(state.config.settings.logLevel, state.config.settings.verboseLogging)
-    return state
+    return this.enqueue(async () => {
+      const state = await this.persist(this.createDefaultConfigForSystemLocale())
+      applyLoggerSettings(state.config.settings.logLevel, state.config.settings.verboseLogging)
+      return state
+    })
   }
 
   private requireConfig(): AppConfig {
