@@ -98,8 +98,8 @@
     "scrcpy": "scrcpy was not found. You can connect headsets, but streaming requires scrcpy.",
     "action": "Open settings",
     "step1": "Enable developer mode and authorize debugging on your headset.",
-    "step2": "Enable network ADB and find your headset’s IP address and port.",
-    "step3": "Add the address to connect and start streaming from its card."
+    "step2": "Plug in the headset and click “Connect via USB”.",
+    "step3": "After Wi-Fi setup, unplug USB. The device card is added automatically."
   },
   "connectedCount": "Online: {count} of {total}",
   "hints": {
@@ -145,6 +145,34 @@
       "VERIFY_FAILED": "Could not verify the headset clock. Try again.",
       "COMMAND_FAILED": "Could not set the time. Check the ADB connection and try again.",
       "SUPERSEDED": "Operation canceled: the headset connection or settings changed."
+    }
+  },
+  "usb": {
+    "action": "Connect via USB",
+    "title": "USB connection",
+    "hint": "Connect the headset with a data USB cable and allow USB debugging inside it. The PC and headset must share a Wi-Fi network.",
+    "progress": "Finding the headset and setting up Wi-Fi… Keep the USB cable connected.",
+    "success": "Connected over Wi-Fi: {address}. You can unplug the USB cable.",
+    "select": "Multiple USB devices found. Choose your headset:",
+    "device": "USB device",
+    "retry": "Retry",
+    "close": "Close",
+    "states": {
+      "unauthorized": "allow debugging in the headset",
+      "offline": "offline",
+      "unknown": "unavailable"
+    },
+    "errors": {
+      "BUSY": "USB setup is already running. Please wait.",
+      "NO_USB": "No USB headset found. Check the data cable, developer mode and USB debugging permission.",
+      "UNAUTHORIZED": "Put on the headset and allow USB debugging for this computer, then retry.",
+      "OFFLINE": "The USB headset is offline. Reconnect the cable and retry.",
+      "DEVICE_CHANGED": "The device changed or its identity could not be verified. Check USB and retry.",
+      "NO_WIFI": "Could not determine a unique Wi-Fi IPv4 address. Connect the headset to the arena network.",
+      "TCPIP_FAILED": "The headset did not confirm network debugging. Check permissions and retry.",
+      "CONNECT_FAILED": "Wi-Fi connection could not be verified. Check the shared network and retry with USB connected.",
+      "COMMAND_FAILED": "ADB failed. Check USB, debugging permission and the technical log, then retry.",
+      "SAVE_FAILED": "Connected, but the device card could not be saved. Retry to save it again."
     }
   }
 }

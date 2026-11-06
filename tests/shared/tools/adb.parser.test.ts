@@ -53,6 +53,7 @@ describe('parseAdbDevices', () => {
     ).toEqual([
       {
         serial: '10.0.0.2:5555',
+        model: 'Quest 3',
         state: 'device',
         rawState: 'device'
       },

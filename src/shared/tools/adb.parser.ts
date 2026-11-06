@@ -13,7 +13,9 @@ export const parseAdbDevices = (stdout: string): AdbDevice[] => {
         ? (rawState as AdbDeviceState)
         : 'unknown'
 
+      const model = /\bmodel:(\S+)/.exec(line)?.[1]?.replaceAll('_', ' ')
       return {
+        ...(model ? { model } : {}),
         serial,
         state,
         rawState

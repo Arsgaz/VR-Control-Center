@@ -235,3 +235,21 @@ VRCC_LIVE_ARTWORK=1 npm test -- tests/main/infrastructure/metadata/application-m
 
 This integration test downloads actual covers into a temporary directory and verifies
 that the disk cache can be read with the network disabled. Normal unit tests skip it.
+
+## Connect a headset via USB
+
+In **Devices**, click **Connect via USB** with a data cable attached. Enable
+Developer Mode first and accept the USB debugging prompt inside the headset.
+The PC and headset must share the arena's trusted Wi-Fi network.
+
+With one USB device, setup starts automatically. With multiple devices, choose
+by model and serial number. The app reads the headset's Wi-Fi IPv4 address,
+runs `adb -s <USB serial> tcpip 5555`, then retries the network connection and
+verifies the hardware serial before saving a card. An existing card at that
+address is reused, preserving its name and stream profile. No existing card is
+changed on failure. A changed IP is added as a new card; USB serials are not
+stored as permanent device identifiers.
+
+Wait for the success message before unplugging USB. If the headset loses
+network debugging after a restart, repeat USB setup. No periodic USB scans run
+in the background. Setup uses the bundled ADB in the Windows release.

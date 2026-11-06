@@ -56,6 +56,7 @@ const vrControlApi: VrControlApi = {
       ipcRenderer.invoke(CONFIG_IPC_CHANNELS.deleteStreamProfile, id)
   },
   headset: {
+    connectUsb: (serial?: string) => ipcRenderer.invoke(HEADSET_IPC_CHANNELS.connectUsb, serial),
     checkEnvironment: () => ipcRenderer.invoke(HEADSET_IPC_CHANNELS.checkEnvironment),
     listAdbDevices: () => ipcRenderer.invoke(HEADSET_IPC_CHANNELS.listAdbDevices),
     connectDevice: (deviceId: string) =>

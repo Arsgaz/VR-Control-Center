@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import UsbConnectionModal from '../devices/UsbConnectionModal.vue'
+import type { UsbConnectionResult } from '../../../../shared/contracts/headset.contracts'
 import oneplaceMark from '../../assets/branding/oneplace-mark.svg'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -27,6 +29,25 @@ const connectedCount = computed(
     ).length
 )
 const { t } = useI18n()
+const isUsbOpen = ref(false)
+const saveUsbDevice = async (
+  result: Extract<UsbConnectionResult, { status: 'connected' }>
+): Promise<boolean> => {
+  let device = headset.configuredDevices.value.find((item) => item.address === result.address)
+  if (!device) {
+    const id = `device-${globalThis.crypto.randomUUID()}`
+    const saved = await headset.addDevice({
+      id,
+      name: `${result.name} (${result.address.split(':')[0]})`,
+      address: result.address,
+      streamProfileId: null
+    })
+    if (!saved) return false
+    device = headset.configuredDevices.value.find((item) => item.id === id)
+  }
+  if (device) await headset.refreshRuntime(device)
+  return true
+}
 const isDeviceFormOpen = ref(false)
 const editingDevice = ref<DeviceConfig | null>(null)
 const overlaySelection = ref(createEmptyDeviceOverlaySelection())
@@ -124,6 +145,14 @@ const closeDiagnostics = (): void => {
         <button
           type="button"
           class="secondary-button"
+          :disabled="isUsbOpen || !headset.isAdbAvailable.value"
+          @click="isUsbOpen = true"
+        >
+          {{ t('devices.usb.action') }}
+        </button>
+        <button
+          type="button"
+          class="secondary-button"
           :disabled="headset.isBusy.value || !headset.isAdbAvailable.value"
           @click="headset.refreshDevices"
         >
@@ -216,6 +245,8 @@ const closeDiagnostics = (): void => {
         @edit="openEditForm"
       />
     </section>
+
+    <UsbConnectionModal v-if="isUsbOpen" :save="saveUsbDevice" @close="isUsbOpen = false" />
 
     <DeviceFormModal
       v-if="isDeviceFormOpen"

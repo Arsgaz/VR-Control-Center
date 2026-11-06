@@ -5,6 +5,7 @@ export const HEADSET_IPC_CHANNELS = {
   disconnectDevice: 'headset:disconnect-device',
   refreshRuntime: 'headset:refresh-runtime',
   syncTime: 'headset:sync-time',
+  connectUsb: 'headset:connect-usb',
   startScrcpy: 'headset:start-scrcpy',
   stopScrcpy: 'headset:stop-scrcpy',
   getScrcpyStatus: 'headset:get-scrcpy-status',
@@ -31,6 +32,7 @@ export interface EnvironmentCheck {
 export type AdbDeviceState = 'device' | 'offline' | 'unauthorized' | 'unknown'
 
 export interface AdbDevice {
+  model?: string
   serial: string
   state: AdbDeviceState
   rawState: string
@@ -156,6 +158,7 @@ export interface DeviceRuntimeEvent {
 }
 
 export interface HeadsetApi {
+  connectUsb: (serial?: string) => Promise<UsbConnectionResult>
   checkEnvironment: () => Promise<EnvironmentCheck>
   listAdbDevices: () => Promise<AdbDevicesResult>
   connectDevice: (deviceId: string) => Promise<DeviceRuntimeResult>
@@ -168,3 +171,18 @@ export interface HeadsetApi {
   onScrcpyEvent: (callback: (event: ScrcpyProcessEvent) => void) => () => void
   onRuntimeEvent: (callback: (event: DeviceRuntimeEvent) => void) => () => void
 }
+
+export type UsbConnectionError =
+  | 'BUSY'
+  | 'NO_USB'
+  | 'UNAUTHORIZED'
+  | 'OFFLINE'
+  | 'DEVICE_CHANGED'
+  | 'NO_WIFI'
+  | 'TCPIP_FAILED'
+  | 'CONNECT_FAILED'
+  | 'COMMAND_FAILED'
+export type UsbConnectionResult =
+  | { status: 'select'; devices: AdbDevice[] }
+  | { status: 'connected'; address: string; name: string }
+  | { status: 'error'; code: UsbConnectionError }
