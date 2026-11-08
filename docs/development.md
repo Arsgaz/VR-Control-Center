@@ -21,6 +21,18 @@ Dev запускает main/preload через electron-vite и renderer чер�
 `localhost:5173` — dev-сервер интерфейса; полноценная работа требует Electron и
 его preload API. В обычном браузере API `window.vrControl` отсутствует.
 
+`scripts/dev.mjs` на macOS подготавливает отдельную копию Electron в
+`node_modules/.cache/vr-control-center`: с именем VR Control Center и общим значком
+шлема. Копия получает ad-hoc подпись с сохранением Electron JIT entitlements;
+поставленный npm-пакетом Electron не меняется. Копия кэшируется по версии runtime,
+имени и иконке. На Windows/Linux используется обычный runtime electron-vite.
+Чтобы применить изменение имени/иконки к уже открытому dev-приложению, остановите
+его и повторите `npm run dev`; одной перезагрузки страницы недостаточно.
+
+Общие иконки PNG/ICO/ICNS и варианты трея генерируются на macOS командой
+`npm run branding:generate` из SVG в `resources/branding`. Сгенерированные файлы
+хранятся в Git и используются сборками без Swift/AppKit на Windows.
+
 На macOS ADB/scrcpy должны быть в PATH процесса приложения либо выбраны как custom.
 Для Windows x64 подготовка встроенного комплекта доступна через:
 

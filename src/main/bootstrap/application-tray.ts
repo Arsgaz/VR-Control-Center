@@ -1,4 +1,4 @@
-import { app, Menu, nativeImage, Tray } from 'electron'
+import { app, Menu, nativeImage, nativeTheme, Tray } from 'electron'
 import { brandingPath } from '@main/infrastructure/branding/branding'
 import { logger } from '@main/infrastructure/logging/logger'
 import type { ConfigurationService } from '@main/modules/configuration/configuration.service'
@@ -12,12 +12,27 @@ export const createApplicationTray = (
   showWindow: () => void
 ): ApplicationTray | null => {
   try {
-    const icon = nativeImage.createFromPath(
-      brandingPath(process.platform === 'darwin' ? 'trayTemplate.png' : 'tray.png')
-    )
-    if (icon.isEmpty()) throw new Error('Tray icon is missing')
-    if (process.platform === 'darwin') icon.setTemplateImage(true)
-    const tray = new Tray(icon)
+    const createIcon = () => {
+      const filename =
+        process.platform === 'darwin'
+          ? 'trayTemplate.png'
+          : process.platform === 'win32' && !nativeTheme.shouldUseDarkColorsForSystemIntegratedUI
+            ? 'tray-light.png'
+            : 'tray.png'
+      const icon = nativeImage.createFromPath(brandingPath(filename))
+      if (icon.isEmpty()) throw new Error('Tray icon is missing')
+      if (process.platform === 'darwin') icon.setTemplateImage(true)
+      return icon
+    }
+    const tray = new Tray(createIcon())
+    const updateIcon = (): void => {
+      try {
+        tray.setImage(createIcon())
+      } catch (error) {
+        logger.errorWithCause('Could not update system tray icon', error)
+      }
+    }
+    if (process.platform === 'win32') nativeTheme.on('updated', updateIcon)
     tray.setToolTip('OnePlace · VR Control Center')
     const updateMenu = (): void => {
       const russian = configuration.get().config.settings.language === 'ru'
@@ -38,6 +53,7 @@ export const createApplicationTray = (
     return {
       destroy: () => {
         unsubscribe()
+        if (process.platform === 'win32') nativeTheme.off('updated', updateIcon)
         if (!tray.isDestroyed()) tray.destroy()
       }
     }

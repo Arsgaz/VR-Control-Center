@@ -187,7 +187,7 @@ Renderer обращается к `window.vrControl`; точные методы �
 
 ```mermaid
 sequenceDiagram
-    participant UI as Окно USB
+    participant UI as Раздел устройств
     participant USB as UsbConnectionService
     participant ADB as ADB
     participant C as ConfigurationService
@@ -208,6 +208,12 @@ sequenceDiagram
     UI->>C: добавить карточку, если адрес ещё не сохранён
     UI-->>UI: обновить runtime и показать успех
 ```
+
+Renderer хранит USB-операцию в `useUsbConnection` между переключениями разделов.
+Модальное окно открывается только для результата `select` с несколькими шлемами;
+после выбора закрывается, а прогресс и итог видны в разделе устройств. Ошибки и
+успех также записываются в пользовательский журнал. После `SAVE_FAILED` сохраняется
+подтверждённый результат для повтора записи без перезапуска ADB TCP/IP.
 
 [UsbConnectionService](../src/main/infrastructure/adb/usb-connection.service.ts)
 блокирует одновременные USB-настройки на весь экземпляр приложения. Без USB

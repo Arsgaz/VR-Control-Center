@@ -20,6 +20,8 @@ import {
   openLaunchGameOverlay
 } from '../devices/device-overlay.model'
 import { useHeadsetController } from '../../composables/useHeadsetController'
+import { useUsbConnection } from '../../composables/useUsbConnection'
+import { useEventLog } from '../../composables/useEventLog'
 
 defineEmits<{ settings: [] }>()
 const headset = useHeadsetController()
@@ -30,7 +32,6 @@ const connectedCount = computed(
     ).length
 )
 const { t } = useI18n()
-const isUsbOpen = ref(false)
 const saveUsbDevice = async (
   result: Extract<UsbConnectionResult, { status: 'connected' }>
 ): Promise<boolean> => {
@@ -46,8 +47,23 @@ const saveUsbDevice = async (
     if (!saved) return false
     device = headset.configuredDevices.value.find((item) => item.id === id)
   }
-  if (device) await headset.refreshRuntime(device)
+  if (!device) return false
+  await headset.refreshRuntime(device)
   return true
+}
+const usb = useUsbConnection(saveUsbDevice)
+const { addEvent } = useEventLog()
+const connectUsb = async (serial?: string): Promise<void> => {
+  if (usb.busy.value) return
+  await usb.connect(serial)
+  if (usb.error.value) {
+    addEvent({ level: 'error', message: t(`devices.usb.errors.${usb.error.value}`) })
+  } else if (usb.connected.value) {
+    addEvent({
+      level: 'success',
+      message: t('devices.usb.success', { address: usb.connected.value.address })
+    })
+  }
 }
 const isDeviceFormOpen = ref(false)
 const editingDevice = ref<DeviceConfig | null>(null)
@@ -137,19 +153,21 @@ const closeDiagnostics = (): void => {
           <h2 id="devices-title">{{ t('devices.section.title') }}</h2>
           <span class="count-badge">{{ headset.configuredDevices.value.length }}</span>
         </div>
-        <p class="muted-text">
-          {{ t('devices.section.description') }}
-        </p>
       </div>
 
       <div class="section-actions">
         <button
           type="button"
           class="secondary-button"
-          :disabled="isUsbOpen || !headset.isAdbAvailable.value"
-          @click="isUsbOpen = true"
+          :disabled="
+            usb.busy.value || usb.devices.value.length > 1 || !headset.isAdbAvailable.value
+          "
+          :aria-busy="usb.busy.value"
+          @click="connectUsb()"
         >
-          <AppIcon name="usb" />{{ t('devices.usb.action') }}
+          <AppIcon name="usb" />{{
+            t(usb.error.value === 'SAVE_FAILED' ? 'devices.usb.retrySave' : 'devices.usb.action')
+          }}
         </button>
         <button
           type="button"
@@ -174,6 +192,16 @@ const closeDiagnostics = (): void => {
         </button>
       </div>
     </div>
+
+    <p v-if="usb.busy.value" class="state-message" role="status">
+      {{ t('devices.usb.progress') }}
+    </p>
+    <p v-else-if="usb.error.value" class="state-message error-message" role="alert">
+      {{ t(`devices.usb.errors.${usb.error.value}`) }}
+    </p>
+    <p v-else-if="usb.connected.value" class="state-message library-success" role="status">
+      {{ t('devices.usb.success', { address: usb.connected.value.address }) }}
+    </p>
 
     <div
       v-if="
@@ -248,7 +276,12 @@ const closeDiagnostics = (): void => {
       />
     </section>
 
-    <UsbConnectionModal v-if="isUsbOpen" :save="saveUsbDevice" @close="isUsbOpen = false" />
+    <UsbConnectionModal
+      v-if="usb.devices.value.length > 1"
+      :devices="usb.devices.value"
+      @select="connectUsb"
+      @close="usb.closeSelection"
+    />
 
     <DeviceFormModal
       v-if="isDeviceFormOpen"

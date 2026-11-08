@@ -130,7 +130,6 @@ const toolPath = (tool: ToolBinaryKind): string => {
   <section class="section-content" aria-labelledby="settings-title">
     <div class="section-heading">
       <h2 id="settings-title">{{ t('settings.page.title') }}</h2>
-      <p class="muted-text">{{ t('settings.page.description') }}</p>
     </div>
 
     <section class="settings-section-card info-card">
@@ -342,7 +341,7 @@ const toolPath = (tool: ToolBinaryKind): string => {
           />
         </label>
 
-        <dl class="compact-details">
+        <dl class="compact-details settings-log-paths">
           <div>
             <dt>{{ t('settings.logging.directory') }}</dt>
             <dd>{{ headset.technicalLogInfo.value?.directory ?? t('common.states.unknown') }}</dd>
@@ -353,7 +352,7 @@ const toolPath = (tool: ToolBinaryKind): string => {
           </div>
         </dl>
 
-        <div class="settings-actions-row">
+        <div class="settings-actions-row settings-log-actions">
           <button type="button" class="secondary-button" @click="openLogsDirectory">
             {{ t('settings.logging.openDirectory') }}
           </button>

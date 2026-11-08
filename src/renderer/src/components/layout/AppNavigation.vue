@@ -69,7 +69,7 @@ const items = computed<NavigationItem[]>(() => [
           :aria-current="activeSection === item.id ? 'page' : undefined"
           @click="emit('change', item.id)"
         >
-          <AppIcon :name="item.icon" :size="17" />
+          <AppIcon :name="item.icon" :size="item.icon === 'headset' ? 22 : 17" />
           <span>{{ item.label }}</span>
         </button>
       </nav>

@@ -511,6 +511,7 @@ h2 {
   align-items: start;
 }
 .device-card {
+  container-type: inline-size;
   min-width: 0;
   border: 1px solid #ffffff12;
   border-radius: 14px;
@@ -664,8 +665,8 @@ h2 {
   background: #eac078;
 }
 .device-card-bottom {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
   justify-content: space-between;
   gap: 10px;
@@ -682,16 +683,40 @@ h2 {
 }
 .device-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
   margin-left: auto;
 }
+@container (max-width: 440px) {
+  .device-card-bottom {
+    column-gap: 6px;
+  }
+  .device-actions {
+    gap: 4px;
+  }
+  .library-open-label {
+    display: none;
+  }
+  .device-card-bottom .compact-button {
+    padding-inline: 8px;
+  }
+}
 .device-action-hint {
   font-size: 0.74rem;
   color: var(--muted);
   margin-top: -10px;
+}
+.device-action-label {
+  display: inline-grid;
+}
+.device-action-label > span {
+  grid-area: 1 / 1;
+}
+.device-action-label-sizer {
+  visibility: hidden;
+  pointer-events: none;
 }
 .device-menu {
   position: relative;
@@ -1168,6 +1193,12 @@ dd {
 .settings-actions-row {
   justify-content: flex-end;
 }
+.settings-log-paths {
+  margin-top: 16px;
+}
+.settings-log-actions {
+  margin-top: 18px;
+}
 .danger-zone-card {
   border-color: #f3aaaa26;
 }
@@ -1332,13 +1363,6 @@ dd {
   .connection-badge {
     width: auto;
     margin: 0;
-  }
-  .device-card-bottom {
-    flex-wrap: wrap;
-  }
-  .device-actions {
-    width: 100%;
-    justify-content: flex-end;
   }
   .quality-presets,
   .profile-field-grid,

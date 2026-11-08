@@ -229,7 +229,6 @@ const discardAndSwitch = (): void => {
   <section class="section-content profiles-section" aria-labelledby="profiles-title">
     <div class="section-heading">
       <h2 id="profiles-title">{{ t('profiles.title') }}</h2>
-      <p class="muted-text">{{ t('profiles.description') }}</p>
     </div>
     <div class="profiles-layout">
       <aside class="profile-list-panel">
