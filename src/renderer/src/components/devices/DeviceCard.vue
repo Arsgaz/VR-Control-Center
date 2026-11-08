@@ -217,36 +217,75 @@ const runStreamAction = (): void => {
         <button
           type="button"
           class="secondary-button compact-button library-open"
+          :aria-label="t('devices.library.title')"
           :disabled="runtime.connectionState !== 'connected' || operation !== null"
-          :title="runtime.connectionState !== 'connected' ? t('devices.hints.connect') : undefined"
+          :title="
+            runtime.connectionState !== 'connected'
+              ? t('devices.hints.connect')
+              : t('devices.library.title')
+          "
           @click="emit('launchGame', device)"
         >
-          <AppIcon name="grid" :size="16" />{{ t('devices.library.title') }}
+          <AppIcon name="grid" :size="16" /><span class="library-open-label">{{
+            t('devices.library.title')
+          }}</span>
         </button>
         <div class="device-actions">
           <button
             type="button"
             class="secondary-button compact-button"
             :disabled="connectionAction.disabled"
+            :aria-busy="operation === 'connect' || operation === 'disconnect'"
             :title="!isAdbAvailable ? t('devices.hints.adb') : undefined"
             @click="runConnectionAction"
           >
             <AppIcon
               :name="connectionAction.action === 'disconnect' ? 'unplug' : 'plug'"
               :size="16"
-            />{{ t(connectionAction.labelKey) }}
+            />
+            <span class="device-action-label">
+              <span
+                v-for="key in ['connect', 'disconnect']"
+                :key="key"
+                class="device-action-label-sizer"
+                aria-hidden="true"
+                >{{ t(`common.actions.${key}`) }}</span
+              >
+              <span>{{
+                t(
+                  connectionAction.action === 'disconnect'
+                    ? 'common.actions.disconnect'
+                    : 'common.actions.connect'
+                )
+              }}</span>
+            </span>
           </button>
           <span :title="streamHint"
             ><button
               type="button"
               :class="`${streamAction.tone}-button compact-button`"
               :disabled="streamAction.disabled"
+              :aria-label="t(streamAction.labelKey)"
+              :aria-busy="operation === 'startScrcpy' || operation === 'stopScrcpy'"
               @click="runStreamAction"
             >
-              <AppIcon
-                :name="streamAction.action === 'stopStream' ? 'stop' : 'play'"
-                :size="16"
-              />{{ t(streamAction.labelKey) }}
+              <AppIcon :name="streamAction.action === 'stopStream' ? 'stop' : 'play'" :size="16" />
+              <span class="device-action-label">
+                <span
+                  v-for="key in ['cast', 'stopCasting']"
+                  :key="key"
+                  class="device-action-label-sizer"
+                  aria-hidden="true"
+                  >{{ t(`devices.actions.${key}`) }}</span
+                >
+                <span>{{
+                  t(
+                    streamAction.action === 'stopStream'
+                      ? 'devices.actions.stopCasting'
+                      : 'devices.actions.cast'
+                  )
+                }}</span>
+              </span>
             </button></span
           >
           <details

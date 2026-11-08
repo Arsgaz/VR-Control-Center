@@ -1,6 +1,6 @@
 {
   "extends": "../tsconfig.node.json",
-  "include": ["**/*.ts", "../vitest.config.ts"],
+  "include": ["**/*.ts", "../vitest.config.ts", "../src/preload/index.d.ts"],
   "exclude": [],
   "compilerOptions": {
     "resolveJsonModule": true,

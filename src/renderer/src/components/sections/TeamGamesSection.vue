@@ -147,7 +147,6 @@ const launch = async (game: TeamGameConfig): Promise<void> => {
           <h2 id="team-games-title">{{ t('teamGames.title') }}</h2>
           <span class="count-badge">{{ games.length }}</span>
         </div>
-        <p class="muted-text">{{ t('teamGames.description') }}</p>
       </div>
       <div class="section-actions">
         <button

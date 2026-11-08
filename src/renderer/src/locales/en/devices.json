@@ -19,6 +19,8 @@
     "refreshing": "Refreshing...",
     "startStream": "Start stream",
     "stopStream": "Stop stream",
+    "cast": "Cast",
+    "stopCasting": "Stop casting",
     "starting": "Starting...",
     "stopping": "Stopping...",
     "launchGame": "Launch game",
@@ -150,6 +152,8 @@
   "usb": {
     "action": "Connect via USB",
     "title": "USB connection",
+    "selectTitle": "Choose a USB headset",
+    "retrySave": "Retry saving",
     "hint": "Connect the headset with a data USB cable and allow USB debugging inside it. The PC and headset must share a Wi-Fi network.",
     "progress": "Finding the headset and setting up Wi-Fi… Keep the USB cable connected.",
     "success": "Connected over Wi-Fi: {address}. You can unplug the USB cable.",
@@ -172,7 +176,7 @@
       "TCPIP_FAILED": "The headset did not confirm network debugging. Check permissions and retry.",
       "CONNECT_FAILED": "Wi-Fi connection could not be verified. Check the shared network and retry with USB connected.",
       "COMMAND_FAILED": "ADB failed. Check USB, debugging permission and the technical log, then retry.",
-      "SAVE_FAILED": "Connected, but the device card could not be saved. Retry to save it again."
+      "SAVE_FAILED": "Connected, but the device card could not be saved. Click Retry saving to save it again."
     }
   }
 }

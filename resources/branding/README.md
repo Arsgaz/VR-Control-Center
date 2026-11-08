@@ -7,11 +7,28 @@ The supplied SVG is preserved as `oneplace-logo.svg`. `oneplace-mark.svg` uses t
 same paths with a cropped viewBox around the headset symbol, so the sign remains
 readable in small UI elements and the system tray.
 
-- `icon.png`, `icon.ico`, `icon.icns`: application, window and installer icons.
-- `tray.png`: color system tray icon for Windows/Linux.
+- `headset.svg`: only the three headset paths extracted from the supplied logo;
+  the same geometry is used by the renderer's headset icon.
+- `headset-app.svg`, `icon.png`, `icon-*.png`, `icon.ico`, `icon.icns`: one simplified
+  headset on a dark rounded tile for app windows, macOS Dock/Finder, Windows
+  taskbar, executables, shortcuts and installer. ICO includes
+  16/20/24/32/40/48/64/128/256 px representations.
+- `tray.png`, `tray@2x.png`: monochrome light headset for a dark Windows/Linux tray.
+  `tray-light.png`, `tray-light@2x.png`: dark headset for a light Windows taskbar.
+  Windows follows the system taskbar theme and updates the image when it changes.
 - `trayTemplate.png`, `trayTemplate@2x.png`: monochrome macOS menu bar images;
   Electron marks them as templates so macOS adapts them to light/dark appearance.
-- `icon-*.png`: source raster sizes included in the ICO/ICNS files.
+
+To regenerate all PNG/ICO/ICNS assets from the checked-in SVGs on macOS, run
+`swift scripts/generate-branding.swift` from the repository root. The script
+uses AppKit and needs no downloaded dependencies. PNG sizes include 1024 px; ICNS
+contains standard and Retina representations.
+
+`npm run dev` uses a cached branded copy of Electron on macOS so Dock shows
+VR Control Center instead of Electron. Only the copy under `node_modules/.cache`
+is changed and ad-hoc signed; the installed Electron runtime is untouched.
+Packaged builds use electron-builder productName/appId and the same icon files.
+The runtime pins existing userData/log paths before applying its display name.
 
 Renderer assets are bundled locally. Golos Text Variable is the UI typeface;
 Matahari Extended 700 from the website's CSS is retained for the brand lockup.
